@@ -1,32 +1,38 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Spinner, Alert, Button } from 'react-bootstrap';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../store';
+import { setSearch, setPriceFrom, setPriceTo } from '../store/slices/filtersSlice';
 import { Breadcrumbs } from '../components/layout';
 import { ServiceCard } from '../components/ui/ServiceCard';
 import { SearchAndCart } from '../components/ui/SearchAndCart';
-import { ServiceFilters, ServiceFiltersState } from '../components/forms/ServiceFilters';
 import { ServiceTCO } from '../types/api';
 import { useApi } from '../hooks/useApi';
 
 export const ServicesPage: React.FC = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const filters = useSelector((state: RootState) => state.filters);
   const [searchQuery, setSearchQuery] = useState('');
   const [cartCount, setCartCount] = useState(0);
-  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
-  const [filters, setFilters] = useState<ServiceFiltersState>({
-    search: '',
-    priceType: undefined,
-    priceFrom: undefined,
-    priceTo: undefined
-  });
 
   // Используем хук для получения данных с фильтрацией на бэкенде
-  const { services, loading, error, refetch } = useApi(filters.search, filters.priceFrom, filters.priceTo);
+  const { services, loading, error, refetch } = useApi(
+    filters.search, 
+    filters.priceFrom, 
+    filters.priceTo
+  );
 
-  // Дополнительная фильтрация по типу цены на клиенте (если бэкенд не поддерживает)
+  // Дополнительная фильтрация на клиенте (если бэкенд не поддерживает некоторые фильтры)
   const filteredServices = services.filter((service: ServiceTCO) => {
-    // Фильтр по типу цены
-    if (filters.priceType && service.price_type !== filters.priceType) {
+    // Фильтр по цене от (если бэкенд не поддерживает)
+    if (filters.priceFrom !== undefined && service.price < filters.priceFrom) {
+      return false;
+    }
+
+    // Фильтр по цене до (если бэкенд не поддерживает)
+    if (filters.priceTo !== undefined && service.price > filters.priceTo) {
       return false;
     }
 
@@ -40,43 +46,22 @@ export const ServicesPage: React.FC = () => {
 
   const handleSearchSubmit = (query: string) => {
     setSearchQuery(query);
-    setFilters(prev => ({ ...prev, search: query }));
+    dispatch(setSearch(query));
   };
 
-  const handleFiltersChange = (_newFilters: ServiceFiltersState) => {
-    // Управляем применением фильтров через кнопку «Применить»
+  const handlePriceFromChange = (value: number | undefined) => {
+    dispatch(setPriceFrom(value));
   };
 
-  const handleApplyFilters = (newFilters: ServiceFiltersState) => {
-    // Применяем фильтры - это вызовет повторный запрос к API
-    setFilters(newFilters);
-    setSearchQuery(newFilters.search || '');
-    
-    // Сигнализируем компоненту фильтров о применении
-    // Так он сохранит свои значения
-  };
-
-  const handleResetFilters = () => {
-    setSearchQuery('');
-    const resetFilters = {
-      search: '',
-      priceType: undefined,
-      priceFrom: undefined,
-      priceTo: undefined
-    };
-    setFilters(resetFilters);
+  const handlePriceToChange = (value: number | undefined) => {
+    dispatch(setPriceTo(value));
   };
 
   const handleViewDetails = (serviceId: number) => {
     navigate(`/catalog_tco/${serviceId}`);
   };
 
-
   const handleCartClick = () => {};
-
-  const handleFiltersToggle = () => {
-    setIsFiltersOpen(!isFiltersOpen);
-  };
 
   if (loading) {
     return (
@@ -113,19 +98,11 @@ export const ServicesPage: React.FC = () => {
         onSearchSubmit={handleSearchSubmit}
         cartCount={cartCount}
         onCartClick={handleCartClick}
-        onFiltersToggle={handleFiltersToggle}
-        isFiltersOpen={isFiltersOpen}
+        priceFrom={filters.priceFrom}
+        priceTo={filters.priceTo}
+        onPriceFromChange={handlePriceFromChange}
+        onPriceToChange={handlePriceToChange}
       />
-
-      {/* Фильтры */}
-      {isFiltersOpen && (
-        <ServiceFilters
-          onFiltersChange={handleFiltersChange}
-          onApply={handleApplyFilters}
-          onReset={handleResetFilters}
-          appliedFilters={filters}
-        />
-      )}
 
       {/* Сетка услуг */}
       <div className="services-grid">

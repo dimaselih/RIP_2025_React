@@ -3,8 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Spinner, Alert } from 'react-bootstrap';
 import { Breadcrumbs } from '../components/layout';
 import { useService } from '../hooks/useApi';
+import { IMAGES } from '../utils/imagePaths';
 
-const DEFAULT_IMAGE_URL = 'http://127.0.0.1:9000/technical/default-service.png';
+const DEFAULT_IMAGE_URL = IMAGES.DEFAULT_SERVICE;
 
 export const ServiceDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();

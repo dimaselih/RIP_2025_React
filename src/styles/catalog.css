@@ -1,5 +1,12 @@
 /* Services page specific styles */
 
+/* Catalog page container */
+.catalog-page {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+}
+
 /* Search and Cart Section */
 .search-cart-section {
     background-color: #fff;
@@ -11,6 +18,8 @@
     gap: 0;
     width: 100%;
     margin-bottom: 16px;
+    position: relative;
+    z-index: 999;
 }
 
 .search-cart-section .search-container {
@@ -20,6 +29,65 @@
     align-items: center;
     gap: 16px;
     max-width: none;
+}
+
+/* Price filters */
+.price-filters {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.price-filter-input {
+    width: 120px;
+    height: 43px;
+    border: 1px solid #58ad6e;
+    border-radius: 30px;
+    padding: 10px 16px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 14px;
+    color: #000;
+    background: transparent;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.price-filter-input:focus {
+    border-color: #4a9a5e;
+    box-shadow: 0 0 0 2px rgba(88, 173, 110, 0.2);
+}
+
+.price-filter-input::placeholder {
+    color: #999;
+}
+
+.price-filter-separator {
+    color: #58ad6e;
+    font-weight: 600;
+    font-size: 16px;
+    padding: 0 4px;
+}
+
+.apply-price-filters-btn {
+    background: #58ad6e !important;
+    border: none !important;
+    color: white !important;
+    border-radius: 30px;
+    padding: 10px 20px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 13px;
+    height: 43px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.apply-price-filters-btn:hover {
+    background: #4a9a5e !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(88, 173, 110, 0.3);
 }
 
 .search-cart-section .cart-container {
@@ -344,6 +412,14 @@
     justify-content: space-evenly;
 }
 
+/* Desktop: 4 columns (>1024px) */
+@media (min-width: 1025px) {
+    .services-grid {
+        grid-template-columns: repeat(4, 300px);
+        justify-content: space-evenly;
+    }
+}
+
 /* Service card styles */
 .service-card {
     background: rgba(217, 217, 217, 0);
@@ -546,16 +622,24 @@
     background: #4a9a5e;
 }
 
-/* Responsive design */
-@media (max-width: 1200px) {
-    .services-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-
-@media (max-width: 900px) {
+/* Tablet: 2 columns (768px - 1024px) */
+@media (max-width: 1024px) and (min-width: 768px) {
     .services-grid {
         grid-template-columns: repeat(2, 1fr);
+        justify-content: center;
+        gap: 20px;
+        padding: 20px;
+    }
+    
+    .service-card {
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+    
+    .service-image {
+        width: 100%;
+        max-width: 400px;
     }
     
     .search-box {
@@ -563,10 +647,23 @@
     }
 }
 
-@media (max-width: 600px) {
+/* Mobile: 1 column (<768px) */
+@media (max-width: 767px) {
     .services-grid {
         grid-template-columns: 1fr;
         justify-items: center;
+        gap: 20px;
+        padding: 15px;
+    }
+    
+    .service-card {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .service-image {
+        width: 100%;
+        max-width: 300px;
     }
     
     .search-box {
@@ -576,30 +673,61 @@
     .filters-content {
         grid-template-columns: 1fr;
     }
-}
-
-/* Responsive design */
-@media (max-width: 1200px) {
-    .services-grid {
-        grid-template-columns: repeat(3, 1fr);
+    
+    /* Sticky search and cart section on mobile */
+    .catalog-page {
+        overflow-x: hidden;
+        overflow-y: visible;
     }
-}
-
-@media (max-width: 900px) {
-    .services-grid {
-        grid-template-columns: repeat(2, 1fr);
+    
+    .search-cart-section {
+        position: sticky;
+        top: 60px; /* высота header на мобильных (примерно) */
+        z-index: 999;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        flex-direction: column;
+        height: auto;
+        padding: 12px;
+        gap: 12px;
+        margin-top: 0;
+        margin-bottom: 16px;
     }
-}
-
-@media (max-width: 600px) {
-    .services-grid {
-        grid-template-columns: 1fr;
-        justify-items: center;
-    }
-
-    .service-card {
+    
+    .search-cart-section .search-container {
         width: 100%;
-        max-width: 300px;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .price-filters {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .price-filter-input {
+        flex: 1;
+        max-width: 120px;
+    }
+    
+    .apply-price-filters-btn {
+        width: 100%;
+        max-width: 200px;
+    }
+    
+    .filters-container {
+        padding: 16px;
+    }
+    
+    .filters-content .row {
+        flex-wrap: wrap !important;
+    }
+    
+    .filters-content .row > [class*="col-"] {
+        flex: 0 0 100%;
+        max-width: 100%;
+        margin-bottom: 12px;
     }
 }
 

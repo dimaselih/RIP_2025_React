@@ -42,7 +42,7 @@ export const useApi = (search?: string, priceFrom?: number, priceTo?: number) =>
     setLoading(true);
     setError(null);
     try {
-      const data = await apiService.getServices(search, undefined, priceFrom, priceTo);
+      const data = await apiService.getServices(search, priceFrom, priceTo);
       setServices(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка загрузки услуг');

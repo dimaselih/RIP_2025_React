@@ -1,11 +1,17 @@
 // API сервис для работы с Django бэкендом
 
 import { ServiceTCO, CalculationTCO } from '../../types/api';
-import { getMockServices, getMockService } from '../storage/mockData';
+import { getMockServices, getMockService, getFilteredMockServices } from '../storage/mockData';
 
-// В режиме разработки используем прокси из package.json (http://localhost:8000)
-// В production можно указать реальный URL через переменную окружения
-const API_BASE_URL = process.env.REACT_APP_API_URL || '';
+// Import Tauri API config if available
+let API_BASE_URL = process.env.REACT_APP_API_URL || '';
+
+// Check if we're running in Tauri and use IP-based API URL
+// In Tauri, we can access local network IP addresses
+if (typeof window !== 'undefined' && (window as any).__TAURI__) {
+  // Tauri environment - use IP address from environment or default
+  API_BASE_URL = process.env.REACT_APP_TAURI_API_URL || 'http://192.168.1.100:8000';
+}
 
 // Флаг для использования mock данных (true = mock, false = реальный API)
 // По умолчанию используем реальный API
@@ -48,12 +54,12 @@ class ApiService {
   }
 
   // Услуги с фильтрацией на бэкенде
-  async getServices(search?: string, priceType?: string, priceFrom?: number, priceTo?: number): Promise<ServiceTCO[]> {
+  async getServices(search?: string, priceFrom?: number, priceTo?: number): Promise<ServiceTCO[]> {
     // Если включено использование mock данных явно, возвращаем их
     if (USE_MOCK_DATA) {
-      // console.debug('[MOCK] getServices', { search, priceType, priceFrom, priceTo });
+      // console.debug('[MOCK] getServices', { search, priceFrom, priceTo });
       await delay(300); // Имитация задержки сети
-      return getMockServices(search);
+      return getFilteredMockServices(search, undefined, priceFrom, priceTo);
     }
     
     // Пытаемся получить данные с бэкенда
@@ -74,7 +80,7 @@ class ApiService {
       // Если нет доступа к бэкенду, используем mock данные
       console.warn('[FALLBACK TO MOCK] Backend unavailable, using mock data');
       await delay(300);
-      return getMockServices(search);
+      return getFilteredMockServices(search, undefined, priceFrom, priceTo);
     }
   }
 

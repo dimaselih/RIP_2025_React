@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form, Row, Col, Button } from 'react-bootstrap';
-import { PriceType } from '../../types/api';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
 
 interface ServiceFiltersProps {
   onFiltersChange: (filters: ServiceFiltersState) => void;
@@ -11,7 +12,6 @@ interface ServiceFiltersProps {
 
 export interface ServiceFiltersState {
   search: string;
-  priceType?: PriceType;
   priceFrom?: number;
   priceTo?: number;
 }
@@ -22,14 +22,22 @@ const ServiceFilters: React.FC<ServiceFiltersProps> = ({
   onReset,
   appliedFilters
 }) => {
-  const [filters, setFilters] = useState<ServiceFiltersState>(
-    appliedFilters || {
-      search: '',
-      priceType: undefined,
-      priceFrom: undefined,
-      priceTo: undefined
-    }
-  );
+  const reduxFilters = useSelector((state: RootState) => state.filters);
+  const initialFilters = appliedFilters || {
+    search: reduxFilters.search || '',
+    priceFrom: reduxFilters.priceFrom,
+    priceTo: reduxFilters.priceTo,
+  };
+  const [filters, setFilters] = useState<ServiceFiltersState>(initialFilters);
+
+  // Синхронизируем с Redux при изменении
+  useEffect(() => {
+    setFilters({
+      search: reduxFilters.search || '',
+      priceFrom: reduxFilters.priceFrom,
+      priceTo: reduxFilters.priceTo,
+    });
+  }, [reduxFilters]);
 
   const handleFilterChange = (field: keyof ServiceFiltersState, value: any) => {
     const newFilters = { ...filters, [field]: value };
@@ -44,7 +52,6 @@ const ServiceFilters: React.FC<ServiceFiltersProps> = ({
   const handleReset = () => {
     const resetFilters: ServiceFiltersState = {
       search: '',
-      priceType: undefined,
       priceFrom: undefined,
       priceTo: undefined
     };
@@ -70,23 +77,7 @@ const ServiceFilters: React.FC<ServiceFiltersProps> = ({
 
       <Form className="filters-content">
         <Row className="align-items-end g-2">
-          <Col md={3}>
-            <Form.Group>
-              <Form.Label>Тип цены:</Form.Label>
-              <Form.Select
-                value={filters.priceType || ''}
-                onChange={(e) => handleFilterChange('priceType', e.target.value || undefined)}
-                className="filter-select"
-              >
-                <option value="">Все типы</option>
-                <option value="one_time">Единовременная</option>
-                <option value="monthly">Ежемесячная</option>
-                <option value="yearly">Ежегодная</option>
-              </Form.Select>
-            </Form.Group>
-          </Col>
-
-          <Col md={3}>
+          <Col md={4}>
             <Form.Group>
               <Form.Label>Цена от:</Form.Label>
               <Form.Control
@@ -99,7 +90,7 @@ const ServiceFilters: React.FC<ServiceFiltersProps> = ({
             </Form.Group>
           </Col>
 
-          <Col md={3}>
+          <Col md={4}>
             <Form.Group>
               <Form.Label>Цена до:</Form.Label>
               <Form.Control
@@ -112,7 +103,7 @@ const ServiceFilters: React.FC<ServiceFiltersProps> = ({
             </Form.Group>
           </Col>
 
-          <Col md={3}>
+          <Col md={4}>
             <Button 
               variant="primary" 
               onClick={handleApply}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, Button } from 'react-bootstrap';
 import { ServiceTCO } from '../../types/api';
+import { IMAGES } from '../../utils/imagePaths';
 
 interface ServiceCardProps {
   service: ServiceTCO;
@@ -18,7 +19,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
   };
 
   // Изображение по умолчанию, если image_url пустое
-  const defaultImage = 'http://127.0.0.1:9000/technical/default-service.png';
+  const defaultImage = IMAGES.DEFAULT_SERVICE;
   const imageUrl = service.image_url || defaultImage;
 
   return (

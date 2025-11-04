@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Navbar, Nav, Container } from 'react-bootstrap';
+import { IMAGES } from '../../utils/imagePaths';
 
 const Navigation: React.FC = () => {
   return (
@@ -9,7 +10,7 @@ const Navigation: React.FC = () => {
         <Navbar.Brand className="logo">
           <Link to="/">
             <img
-              src="http://127.0.0.1:9000/technical/logo.png"
+              src={IMAGES.LOGO}
               alt="Logo"
               className="logo-img"
             />
