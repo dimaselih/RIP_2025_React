@@ -14,8 +14,9 @@
       "sizes": "512x512"
     }
   ],
-  "start_url": "/RIP_2025_React/",
-  "scope": "/RIP_2025_React/",
+  "start_url": "https://dimasaelih.github.io/RIP_2025_React/",
+  "scope": "https://dimasaelih.github.io/RIP_2025_React/",
+  "id": "/RIP_2025_React/",
   "display": "standalone",
   "orientation": "portrait-primary",
   "theme_color": "#58ad6e",

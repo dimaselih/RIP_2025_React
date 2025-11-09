@@ -23,6 +23,12 @@ class ApiService {
   ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
     
+    // Логирование для демонстрации подключения по IP
+    if (API_BASE_URL) {
+      console.log(`[TAURI API] Запрос к: ${url}`);
+      console.log(`[TAURI API] IP адрес сервера: ${API_BASE_URL}`);
+    }
+    
     const config: RequestInit = {
       credentials: 'include', // Отправляем cookies для сессионной аутентификации
       headers: {
