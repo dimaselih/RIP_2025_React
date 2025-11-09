@@ -1,15 +1,12 @@
 const CACHE_NAME = 'tco-calculator-v1';
-// Get the base path from the service worker scope
-const basePath = self.location.pathname.replace('/service-worker.js', '') || '/RIP_2025_React';
-
 const urlsToCache = [
-  basePath + '/',
-  basePath + '/static/css/main.css',
-  basePath + '/static/js/main.js',
-  basePath + '/manifest.json',
-  basePath + '/logo192.png',
-  basePath + '/logo512.png',
-  basePath + '/favicon.ico'
+  '/',
+  '/static/css/main.css',
+  '/static/js/main.js',
+  '/manifest.json',
+  '/logo192.png',
+  '/logo512.png',
+  '/favicon.ico'
 ];
 
 // Install event - cache resources
@@ -70,9 +67,8 @@ self.addEventListener('fetch', (event) => {
       .catch(() => {
         // If both cache and network fail, return a fallback response
         if (event.request.destination === 'document') {
-          return caches.match(basePath + '/');
+          return caches.match('/');
         }
       })
   );
 });
-
