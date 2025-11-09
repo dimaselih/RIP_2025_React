@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/RIP_2025_React/static/css/main.c0879dcc.css",
-    "main.js": "/RIP_2025_React/static/js/main.d1a5ded7.js",
-    "index.html": "/RIP_2025_React/index.html",
-    "main.c0879dcc.css.map": "/RIP_2025_React/static/css/main.c0879dcc.css.map",
-    "main.d1a5ded7.js.map": "/RIP_2025_React/static/js/main.d1a5ded7.js.map"
+    "main.css": "/static/css/main.c0879dcc.css",
+    "main.js": "/static/js/main.4d601f5e.js",
+    "index.html": "/index.html",
+    "main.c0879dcc.css.map": "/static/css/main.c0879dcc.css.map",
+    "main.4d601f5e.js.map": "/static/js/main.4d601f5e.js.map"
   },
   "entrypoints": [
     "static/css/main.c0879dcc.css",
-    "static/js/main.d1a5ded7.js"
+    "static/js/main.4d601f5e.js"
   ]
 }
