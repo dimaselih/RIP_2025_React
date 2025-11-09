@@ -9,13 +9,16 @@ import { ServiceCard } from '../components/ui/ServiceCard';
 import { SearchAndCart } from '../components/ui/SearchAndCart';
 import { ServiceTCO } from '../types/api';
 import { useApi } from '../hooks/useApi';
+import { useCart } from '../hooks/useCart';
 
 export const ServicesPage: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const filters = useSelector((state: RootState) => state.filters);
   const [searchQuery, setSearchQuery] = useState('');
-  const [cartCount, setCartCount] = useState(0);
+  
+  // Получаем количество товаров в корзине из API
+  const { cartCount } = useCart();
 
   // Используем хук для получения данных с фильтрацией на бэкенде
   const { services, loading, error, refetch } = useApi(

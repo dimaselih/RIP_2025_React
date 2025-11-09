@@ -380,7 +380,7 @@ body {
 
 /* Home page styles */
 .home-page {
-    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    background: #ffffff;
     min-height: calc(100vh - 88px);
     position: relative;
     overflow: hidden;
@@ -472,7 +472,7 @@ body {
 
 /* Main Feature Section */
 .main-feature-section {
-    padding: 60px 30px 80px;
+    padding: 80px 30px 80px;
     background: #fff;
     max-width: 1000px;
     margin: 0 auto;

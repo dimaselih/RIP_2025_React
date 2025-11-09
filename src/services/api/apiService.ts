@@ -132,7 +132,17 @@ class ApiService {
     return this.request<CalculationTCO>(`/api/calculation/${id}/`);
   }
 
-  // Пользовательские методы пока не используются и удалены для чистоты кода
+  // Получение количества товаров в корзине
+  async getCartCount(): Promise<number> {
+    try {
+      const response = await this.request<{ calculation_id: number; services_count: number }>('/api/cart_tco/');
+      return response.services_count || 0;
+    } catch (error) {
+      // Если сервис недоступен, возвращаем 0
+      console.warn('[CART] Failed to get cart count, returning 0:', error);
+      return 0;
+    }
+  }
 }
 
 export const apiService = new ApiService();

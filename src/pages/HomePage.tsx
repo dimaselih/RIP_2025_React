@@ -4,24 +4,6 @@ import { Link } from 'react-router-dom';
 export const HomePage: React.FC = () => {
   return (
     <div className="home-page">
-      {/* Hero Section */}
-      <div className="hero-section">
-        <div className="hero-content">
-          <h1 className="hero-title">Asset Cost Calculator</h1>
-          <p className="hero-subtitle">
-            Система расчета стоимости активов TCO для эффективного управления IT-инфраструктурой
-          </p>
-          <div className="hero-cta">
-            <Link to="/catalog_tco" className="cta-button">
-              Перейти к каталогу услуг
-            </Link>
-          </div>
-        </div>
-
-        {/* Background decoration */}
-        <div className="hero-bg-decoration"></div>
-      </div>
-
       {/* Main Feature Section */}
       <div className="main-feature-section">
         <div className="main-feature-card">
@@ -47,7 +29,7 @@ export const HomePage: React.FC = () => {
             </div>
             <div className="main-feature-cta">
               <Link to="/catalog_tco" className="primary-cta-button">
-                Начать расчет TCO
+                Перейти к каталогу услуг
               </Link>
             </div>
           </div>
