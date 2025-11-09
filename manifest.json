@@ -21,8 +21,8 @@
       "purpose": "any maskable"
     }
   ],
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "/RIP_2025_React/",
+  "scope": "/RIP_2025_React/",
   "display": "standalone",
   "orientation": "portrait-primary",
   "theme_color": "#58ad6e",
