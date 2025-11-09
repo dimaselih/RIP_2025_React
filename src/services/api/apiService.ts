@@ -2,16 +2,10 @@
 
 import { ServiceTCO, CalculationTCO } from '../../types/api';
 import { getMockServices, getMockService, getFilteredMockServices } from '../storage/mockData';
+import { dest_api } from '../../config/target_config';
 
-// Import Tauri API config if available
-let API_BASE_URL = process.env.REACT_APP_API_URL || '';
-
-// Check if we're running in Tauri and use IP-based API URL
-// In Tauri, we can access local network IP addresses
-if (typeof window !== 'undefined' && (window as any).__TAURI__) {
-  // Tauri environment - use IP address from environment or default
-  API_BASE_URL = process.env.REACT_APP_TAURI_API_URL || 'http://192.168.1.100:8000';
-}
+// API base URL - используем target_config для переключения между веб и Tauri
+const API_BASE_URL = dest_api;
 
 // Флаг для использования mock данных (true = mock, false = реальный API)
 // По умолчанию используем реальный API
@@ -39,7 +33,6 @@ class ApiService {
     };
 
     try {
-      // console.debug(`[API] ${options.method || 'GET'} ${url}`);
       const response = await fetch(url, config);
       
       if (!response.ok) {

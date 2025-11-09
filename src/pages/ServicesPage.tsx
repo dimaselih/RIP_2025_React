@@ -105,7 +105,7 @@ export const ServicesPage: React.FC = () => {
         priceTo={filters.priceTo}
         onPriceFromChange={handlePriceFromChange}
         onPriceToChange={handlePriceToChange}
-      />
+        />
 
       {/* Сетка услуг */}
       <div className="services-grid">

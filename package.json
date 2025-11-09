@@ -34,7 +34,7 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
     "tauri": "tauri",
-    "tauri:dev": "tauri dev",
+    "tauri:dev": "cross-env BROWSER=none tauri dev",
     "tauri:build": "tauri build"
   },
   "homepage": "https://dimasaelih.github.io/RIP_2025_React",
@@ -59,7 +59,7 @@
   },
   "devDependencies": {
     "@tauri-apps/api": "^2.9.0",
-    "@tauri-apps/cli": "^2.9.2",
+    "@tauri-apps/cli": "^2.9.3",
     "cross-env": "^10.1.0",
     "gh-pages": "^6.3.0"
   }
