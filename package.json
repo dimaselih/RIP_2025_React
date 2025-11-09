@@ -37,7 +37,7 @@
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build"
   },
-  "homepage": "https://dimasaelih.github.io",
+  "homepage": "https://dimasaelih.github.io/RIP_2025_React",
   "proxy": "http://localhost:8000",
   "eslintConfig": {
     "extends": [
