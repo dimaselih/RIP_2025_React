@@ -4,6 +4,7 @@ import { Container, Row, Col, Card, Button, Spinner, Alert } from 'react-bootstr
 import { Breadcrumbs } from '../components/layout';
 import { useService } from '../hooks/useApi';
 import { IMAGES } from '../utils/imagePaths';
+import '../styles/service_detail.css';
 
 const DEFAULT_IMAGE_URL = IMAGES.DEFAULT_SERVICE;
 

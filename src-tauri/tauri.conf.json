@@ -5,7 +5,7 @@
   "identifier": "com.tcocalculator.app",
   "build": {
     "frontendDist": "../build",
-    "devUrl": "http://localhost:3000",
+    "devUrl": "https://localhost:5173",
     "beforeDevCommand": "npm run start",
     "beforeBuildCommand": "npm run build"
   },

@@ -1,7 +1,7 @@
 // Типы для React хуков
 
 import { ServiceTCO, CalculationTCO, User, ServiceFilters, CalculationFilters } from './api';
-import { FilterState, LoadingState, PaginationState } from './common';
+import { PaginationState } from './common';
 
 // ==================== API ХУКИ ====================
 

@@ -1,7 +1,7 @@
 // API сервис для работы с Django бэкендом
 
 import { ServiceTCO, CalculationTCO } from '../../types/api';
-import { getMockServices, getMockService, getFilteredMockServices } from '../storage/mockData';
+import { getMockService, getFilteredMockServices } from '../storage/mockData';
 import { dest_api } from '../../config/target_config';
 
 // API base URL - используем target_config для переключения между веб и Tauri
@@ -9,7 +9,7 @@ const API_BASE_URL = dest_api;
 
 // Флаг для использования mock данных (true = mock, false = реальный API)
 // По умолчанию используем реальный API
-const USE_MOCK_DATA = process.env.REACT_APP_USE_MOCK === 'true';
+const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK === 'true';
 
 // Примечание: подробные debug-логи отключены для чистоты консоли
 

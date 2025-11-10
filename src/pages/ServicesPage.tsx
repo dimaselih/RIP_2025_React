@@ -10,6 +10,7 @@ import { SearchAndCart } from '../components/ui/SearchAndCart';
 import { ServiceTCO } from '../types/api';
 import { useApi } from '../hooks/useApi';
 import { useCart } from '../hooks/useCart';
+import '../styles/catalog.css';
 
 export const ServicesPage: React.FC = () => {
   const navigate = useNavigate();
