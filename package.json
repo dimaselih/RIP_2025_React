@@ -30,10 +30,7 @@
     "preview": "vite preview",
     "test": "react-scripts test",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build",
-    "tauri": "tauri",
-    "tauri:dev": "cross-env BROWSER=none tauri dev",
-    "tauri:build": "tauri build"
+    "deploy": "gh-pages -d build"
   },
   "homepage": "https://dimasaelih.github.io/RIP_2025_React",
   "eslintConfig": {
@@ -55,8 +52,6 @@
     ]
   },
   "devDependencies": {
-    "@tauri-apps/api": "^2.9.0",
-    "@tauri-apps/cli": "^2.9.3",
     "@types/node": "^24.10.0",
     "@vitejs/plugin-react": "^5.1.0",
     "cross-env": "^10.1.0",
