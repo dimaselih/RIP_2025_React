@@ -39,3 +39,16 @@ cert.key
 .env.development.local
 .env.test.local
 .env.production.local
+
+# ============================================
+# TAURI BRANCH (feat/tauri-desktop): Игнорируем только PWA и GitHub Pages
+# ============================================
+
+# Tauri build artifacts (только артефакты сборки, не сам код)
+/src-tauri/target/
+/src-tauri/Cargo.lock
+
+# GitHub Pages / PWA - игнорируем в Tauri ветке
+/public/manifest.json
+/public/service-worker.js
+
