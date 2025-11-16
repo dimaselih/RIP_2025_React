@@ -39,3 +39,11 @@ cert.key
 .env.development.local
 .env.test.local
 .env.production.local
+
+# ============================================
+# GITHUB PAGES / PWA BRANCH: Игнорируем только Tauri
+# ============================================
+
+# Tauri - полностью игнорируем в GitHub Pages/PWA ветке
+/src-tauri/
+
