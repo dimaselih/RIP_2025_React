@@ -85,18 +85,18 @@ export const HomePage: React.FC = () => {
             >
               {carouselSlides.map((slide, index) => (
                 <div key={index} className="carousel-slide">
-                  <div className="main-feature-card">
-                    <div className="main-feature-content">
-                      <div className="main-feature-icon">
-                        <div className="main-icon-circle">
+        <div className="main-feature-card">
+          <div className="main-feature-content">
+            <div className="main-feature-icon">
+              <div className="main-icon-circle">
                           <span className="main-icon-text">{slide.icon}</span>
-                        </div>
-                      </div>
+              </div>
+            </div>
                       <h2 className="main-feature-title">{slide.title}</h2>
-                      <p className="main-feature-description">
+            <p className="main-feature-description">
                         {slide.description}
-                      </p>
-                      <div className="main-feature-benefits">
+            </p>
+            <div className="main-feature-benefits">
                         {slide.benefits.map((benefit, benefitIndex) => (
                           <div key={benefitIndex} className="benefit-item">
                             <span className="benefit-icon">{benefit.icon}</span>
@@ -104,9 +104,9 @@ export const HomePage: React.FC = () => {
                           </div>
                         ))}
                       </div>
-                    </div>
-                  </div>
-                </div>
+              </div>
+              </div>
+            </div>
               ))}
             </div>
           </div>
