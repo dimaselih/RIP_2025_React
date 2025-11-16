@@ -672,6 +672,130 @@ body {
     left: 100%;
 }
 
+/* Carousel Section */
+.carousel-section {
+    padding: 80px 30px 80px;
+    background: #fff;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.carousel-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.carousel-wrapper {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 24px;
+    padding: 20px 0;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.1);
+}
+
+.carousel-slides {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+    will-change: transform;
+    width: 100%;
+}
+
+.carousel-slide {
+    min-width: 100%;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+.carousel-slide .main-feature-card {
+    border-radius: 16px;
+    margin: 0 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+    border: 1px solid rgba(88, 173, 110, 0.1);
+    position: relative;
+}
+
+.carousel-slide .main-feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #58ad6e 0%, #4a9a5e 100%);
+    border-radius: 16px 16px 0 0;
+}
+
+.carousel-slide .main-feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(88, 173, 110, 0.15);
+    border-color: rgba(88, 173, 110, 0.2);
+}
+
+.carousel-button {
+    background: linear-gradient(135deg, #58ad6e 0%, #4a9a5e 100%);
+    color: white;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 32px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(88, 173, 110, 0.3);
+    flex-shrink: 0;
+    z-index: 10;
+}
+
+.carousel-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(88, 173, 110, 0.4);
+    background: linear-gradient(135deg, #4a9a5e 0%, #58ad6e 100%);
+}
+
+.carousel-button:active {
+    transform: scale(0.95);
+}
+
+.carousel-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 40px;
+    padding: 0;
+}
+
+.carousel-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(88, 173, 110, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0;
+}
+
+.carousel-indicator:hover {
+    background: rgba(88, 173, 110, 0.5);
+    transform: scale(1.2);
+}
+
+.carousel-indicator.active {
+    background: linear-gradient(135deg, #58ad6e 0%, #4a9a5e 100%);
+    width: 32px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(88, 173, 110, 0.4);
+}
+
 /* Responsive design for HomePage */
 /* Tablet (768px - 1024px) */
 @media (max-width: 1024px) and (min-width: 768px) {
@@ -716,6 +840,16 @@ body {
         grid-template-columns: repeat(2, 1fr);
         gap: 14px;
         padding: 22px;
+    }
+
+    .carousel-section {
+        padding: 60px 30px 60px;
+    }
+
+    .carousel-button {
+        width: 45px;
+        height: 45px;
+        font-size: 28px;
     }
 }
 
@@ -776,6 +910,34 @@ body {
         white-space: normal;
     }
 
+    .carousel-section {
+        padding: 40px 20px 60px;
+    }
+
+    .carousel-container {
+        gap: 10px;
+    }
+
+    .carousel-button {
+        width: 40px;
+        height: 40px;
+        font-size: 24px;
+    }
+
+    .carousel-indicators {
+        margin-top: 30px;
+        gap: 10px;
+    }
+
+    .carousel-indicator {
+        width: 10px;
+        height: 10px;
+    }
+
+    .carousel-indicator.active {
+        width: 24px;
+    }
+
     .primary-cta-button {
         padding: 16px 32px;
         font-size: 16px;
@@ -811,6 +973,16 @@ body {
 
     .main-feature-card {
         padding: 30px 20px;
+    }
+
+    .carousel-section {
+        padding: 30px 15px 50px;
+    }
+
+    .carousel-button {
+        width: 36px;
+        height: 36px;
+        font-size: 20px;
     }
 
     .main-icon-circle {
