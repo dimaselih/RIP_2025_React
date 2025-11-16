@@ -1,29 +1,14 @@
-import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Container } from 'react-bootstrap';
 import { Provider } from 'react-redux';
 import { store } from './store';
 import { Navbar } from './components/layout';
 import { HomePage, ServicesPage, ServiceDetailPage } from './pages';
-import { invoke } from '@tauri-apps/api/core';
-import { dest_root } from './config/target_config';
 
 function App() {
-  useEffect(() => {
-    invoke('tauri', { cmd: 'create' })
-      .then(() => {})
-      .catch(() => {});
-
-    return () => {
-      invoke('tauri', { cmd: 'close' })
-        .then(() => {})
-        .catch(() => {});
-    };
-  }, []);
-
   return (
     <Provider store={store}>
-    <BrowserRouter basename={dest_root}>
+    <BrowserRouter>
       <Navbar />
       <main className="main-content">
         <Container fluid className="container">

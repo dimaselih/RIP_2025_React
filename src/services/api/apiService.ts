@@ -4,7 +4,7 @@ import { ServiceTCO, CalculationTCO } from '../../types/api';
 import { getMockService, getFilteredMockServices } from '../storage/mockData';
 import { dest_api } from '../../config/target_config';
 
-// API base URL - используем target_config для переключения между веб и Tauri
+// API base URL
 const API_BASE_URL = dest_api;
 
 // Флаг для использования mock данных (true = mock, false = реальный API)
@@ -22,12 +22,6 @@ class ApiService {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
-    
-    // Логирование для демонстрации подключения по IP
-    if (API_BASE_URL) {
-      console.log(`[TAURI API] Запрос к: ${url}`);
-      console.log(`[TAURI API] IP адрес сервера: ${API_BASE_URL}`);
-    }
     
     const config: RequestInit = {
       credentials: 'include', // Отправляем cookies для сессионной аутентификации
