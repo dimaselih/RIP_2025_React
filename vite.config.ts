@@ -18,7 +18,7 @@ export default defineConfig({
       },
     },
   },
-  base: '/RIP_2025_React/',
+  base: '/',
   build: {
     outDir: 'build',
   },
