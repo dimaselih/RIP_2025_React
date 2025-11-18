@@ -4,11 +4,12 @@ import { Provider } from 'react-redux';
 import { store } from './store';
 import { Navbar } from './components/layout';
 import { HomePage, ServicesPage, ServiceDetailPage } from './pages';
+import { dest_root } from './config/target_config';
 
 function App() {
   return (
     <Provider store={store}>
-    <BrowserRouter>
+    <BrowserRouter basename={dest_root}>
       <Navbar />
       <main className="main-content">
         <Container fluid className="container">
