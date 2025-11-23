@@ -9,7 +9,23 @@ export const API_ENDPOINTS = {
 export const ROUTES = {
   HOME: '/',
   CATALOG_TCO: '/catalog_tco',
-  CATALOG_TCO_DETAIL: '/catalog_tco/:id',
+  CALCULATIONS_TCO: '/calculations_tco',
+  CALCULATION_TCO: '/calculation_tco',
+  PROFILE: '/profile',
+  LOGIN: '/login',
+  REGISTER: '/register',
+} as const;
+
+export type RouteKeyType = keyof typeof ROUTES;
+
+export const ROUTE_LABELS: { [key in RouteKeyType]: string } = {
+  HOME: 'Главная',
+  CATALOG_TCO: 'Каталог услуг TCO',
+  CALCULATIONS_TCO: 'Мои заявки',
+  CALCULATION_TCO: 'Заявка',
+  PROFILE: 'Личный кабинет',
+  LOGIN: 'Вход',
+  REGISTER: 'Регистрация',
 } as const;
 
 export const PRICE_TYPES = {

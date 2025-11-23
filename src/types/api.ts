@@ -85,6 +85,47 @@ export interface AddToCartRequest {
   quantity: number;
 }
 
+// ==================== АВТОРИЗАЦИЯ ====================
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  status: 'ok' | 'error';
+  message?: string;
+  error?: string;
+}
+
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  is_staff?: boolean;
+  is_superuser?: boolean;
+}
+
+export interface RegisterResponse {
+  status: 'Success' | 'Error' | 'Exist';
+  error?: string;
+}
+
+export interface UserProfile {
+  id: number;
+  email: string;
+  is_staff: boolean;
+  is_superuser: boolean;
+  is_active: boolean;
+  date_joined: string;
+}
+
+export interface UpdateProfileRequest {
+  email?: string;
+  password?: string;
+  is_staff?: boolean;
+  is_superuser?: boolean;
+}
+
 export interface UpdateCalculationRequest {
   start_date?: string;
   end_date?: string;

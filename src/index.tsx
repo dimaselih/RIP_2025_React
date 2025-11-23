@@ -12,8 +12,8 @@ root.render(
   </React.StrictMode>
 );
 
-// Register service worker for PWA
-if ('serviceWorker' in navigator) {
+// Register service worker for PWA (только в production)
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => {
     const swPath = import.meta.env.BASE_URL ? `${import.meta.env.BASE_URL}service-worker.js` : '/service-worker.js';
     navigator.serviceWorker.register(swPath)
@@ -22,6 +22,14 @@ if ('serviceWorker' in navigator) {
       })
       .catch((error) => {
         console.log('ServiceWorker registration failed:', error);
+      });
+  });
+} else if ('serviceWorker' in navigator && import.meta.env.DEV) {
+  // Отключаем Service Worker в development
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    registrations.forEach((registration) => {
+      registration.unregister();
+      console.log('ServiceWorker unregistered for development');
       });
   });
 }

@@ -1,14 +1,14 @@
 // Mock данные для демонстрации без бэкенда
 
-import { ServiceTCO } from '../../types/api';
+import { ServiceTCOList } from '../../api/Api';
 
-export const mockServices: ServiceTCO[] = [
+export const mockServices: ServiceTCOList[] = [
   {
     id: 1,
     name: 'Лицензирование ПО',
     description: 'Приобретение лицензий на программное обеспечение для бизнес-процессов',
     fullDescription: 'Включено:\n- Лицензии Microsoft Office и Windows\n- Лицензии Adobe Creative Suite\n- ERP и CRM системы\n- Системы мониторинга и безопасности\n- Базы данных и СУБД\n- Средства разработки\n- Ежегодное продление лицензий',
-    price: 950000,
+    price: '950000',
     price_type: 'yearly',
     is_deleted: false
   },
@@ -17,13 +17,13 @@ export const mockServices: ServiceTCO[] = [
     name: 'Обучение персонала',
     description: 'Обучение персонала работе с аппаратурой и программным обеспечением',
     fullDescription: 'Включено:\n- Обучение работе с оборудованием\n- Курсы по эксплуатации техники\n- Обучение программному обеспечению\n- Инструктажи по безопасности\n- Тренинги по решению проблем\n- Изучение технической документации\n- Повышение квалификации персонала',
-    price: 680000,
+    price: '680000',
     price_type: 'one_time',
     is_deleted: false
   }
 ];
 
-export const getMockServices = (search?: string): ServiceTCO[] => {
+export const getMockServices = (search?: string): ServiceTCOList[] => {
   if (!search) return mockServices;
   
   return mockServices.filter(service => 
@@ -33,7 +33,7 @@ export const getMockServices = (search?: string): ServiceTCO[] => {
   );
 };
 
-export const getMockService = (id: number): ServiceTCO | undefined => {
+export const getMockService = (id: number): ServiceTCOList | undefined => {
   return mockServices.find(service => service.id === id);
 };
 
@@ -43,7 +43,7 @@ export const getFilteredMockServices = (
   priceType?: string,
   priceFrom?: number,
   priceTo?: number
-): ServiceTCO[] => {
+): ServiceTCOList[] => {
   let filtered = mockServices;
   
   if (search) {
@@ -59,11 +59,11 @@ export const getFilteredMockServices = (
   }
   
   if (priceFrom !== undefined) {
-    filtered = filtered.filter(service => service.price >= priceFrom);
+    filtered = filtered.filter(service => parseFloat(service.price) >= priceFrom);
   }
   
   if (priceTo !== undefined) {
-    filtered = filtered.filter(service => service.price <= priceTo);
+    filtered = filtered.filter(service => parseFloat(service.price) <= priceTo);
   }
   
   return filtered;

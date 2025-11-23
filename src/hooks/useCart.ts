@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { apiService } from '../services/api/apiService';
+import { api } from '../api';
 
 export const useCart = () => {
   const [cartCount, setCartCount] = useState<number>(0);
@@ -10,8 +10,9 @@ export const useCart = () => {
     setLoading(true);
     setError(null);
     try {
-      const count = await apiService.getCartCount();
-      setCartCount(count);
+      const response = await api.cartTco.cartTcoList();
+      const data = response.data as { calculation_id: number | null; services_count: number };
+      setCartCount(data.services_count || 0);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка загрузки корзины');
       setCartCount(0); // При ошибке показываем 0

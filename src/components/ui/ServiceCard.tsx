@@ -1,21 +1,34 @@
 import React from 'react';
 import { Card, Button } from 'react-bootstrap';
-import { ServiceTCO } from '../../types/api';
+import { ServiceTCOList } from '../../api/Api';
 import { IMAGES } from '../../utils/imagePaths';
 
 interface ServiceCardProps {
-  service: ServiceTCO;
+  service: ServiceTCOList;
   onViewDetails: (serviceId: number) => void;
+  onAddToCart?: (serviceId: number) => void;
+  isAuthenticated?: boolean;
+  isAddingToCart?: boolean;
 }
 
 export const ServiceCard: React.FC<ServiceCardProps> = ({
   service,
-  onViewDetails
+  onViewDetails,
+  onAddToCart,
+  isAuthenticated = false,
+  isAddingToCart = false
 }) => {
 
   const handleViewDetails = (e: React.MouseEvent) => {
     e.preventDefault();
     onViewDetails(service.id);
+  };
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (onAddToCart && isAuthenticated) {
+      onAddToCart(service.id);
+    }
   };
 
   // Изображение по умолчанию, если image_url пустое
@@ -49,10 +62,13 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
             ПОДРОБНЕЕ
           </Button>
           <Button
+            onClick={handleAddToCart}
             variant="primary"
             className="add-btn"
+            disabled={!isAuthenticated || isAddingToCart}
+            title={!isAuthenticated ? 'Войдите, чтобы добавить услугу' : 'Добавить в корзину'}
           >
-            ДОБАВИТЬ
+            {isAddingToCart ? 'ДОБАВЛЕНИЕ...' : 'ДОБАВИТЬ'}
           </Button>
         </div>
       </Card.Body>

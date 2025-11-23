@@ -1,25 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Spinner, Alert, Button } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../store';
+import { RootState, AppDispatch } from '../store';
 import { setSearch, setPriceFrom, setPriceTo } from '../store/slices/filtersSlice';
+import { addServiceToCart, fetchCartInfo } from '../store/thunks/calculationThunks';
 import { Breadcrumbs } from '../components/layout';
+import { ROUTE_LABELS } from '../utils/constants';
 import { ServiceCard } from '../components/ui/ServiceCard';
 import { SearchAndCart } from '../components/ui/SearchAndCart';
-import { ServiceTCO } from '../types/api';
+import { ServiceTCOList } from '../api/Api';
 import { useApi } from '../hooks/useApi';
-import { useCart } from '../hooks/useCart';
 import '../styles/catalog.css';
 
 export const ServicesPage: React.FC = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const filters = useSelector((state: RootState) => state.filters);
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { services_count: cartCount } = useSelector((state: RootState) => state.cart);
   const [searchQuery, setSearchQuery] = useState('');
+  const [addingServiceId, setAddingServiceId] = useState<number | null>(null);
   
-  // Получаем количество товаров в корзине из API
-  const { cartCount } = useCart();
+  // Загружаем корзину при переходе на страницу каталога
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchCartInfo());
+    }
+  }, [isAuthenticated, dispatch]);
 
   // Используем хук для получения данных с фильтрацией на бэкенде
   const { services, loading, error, refetch } = useApi(
@@ -29,14 +37,15 @@ export const ServicesPage: React.FC = () => {
   );
 
   // Дополнительная фильтрация на клиенте (если бэкенд не поддерживает некоторые фильтры)
-  const filteredServices = services.filter((service: ServiceTCO) => {
+  const filteredServices = services.filter((service: ServiceTCOList) => {
     // Фильтр по цене от (если бэкенд не поддерживает)
-    if (filters.priceFrom !== undefined && service.price < filters.priceFrom) {
+    const price = parseFloat(service.price);
+    if (filters.priceFrom !== undefined && price < filters.priceFrom) {
       return false;
     }
 
     // Фильтр по цене до (если бэкенд не поддерживает)
-    if (filters.priceTo !== undefined && service.price > filters.priceTo) {
+    if (filters.priceTo !== undefined && price > filters.priceTo) {
       return false;
     }
 
@@ -65,7 +74,22 @@ export const ServicesPage: React.FC = () => {
     navigate(`/catalog_tco/${serviceId}`);
   };
 
-  const handleCartClick = () => {};
+  const handleAddToCart = async (serviceId: number) => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      setAddingServiceId(serviceId);
+      await dispatch(addServiceToCart({ serviceId, quantity: 1 })).unwrap();
+    } catch (error: any) {
+      console.error('Failed to add service to cart:', error);
+      alert('Ошибка добавления в корзину. Попробуйте позже.');
+    } finally {
+      setAddingServiceId(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -93,7 +117,7 @@ export const ServicesPage: React.FC = () => {
   return (
     <div className="catalog-page">
       {/* Breadcrumbs */}
-      <Breadcrumbs />
+      <Breadcrumbs crumbs={[{ label: ROUTE_LABELS.CATALOG_TCO }]} />
 
       {/* Поиск и корзина */}
       <SearchAndCart
@@ -101,7 +125,6 @@ export const ServicesPage: React.FC = () => {
         onSearchChange={handleSearchChange}
         onSearchSubmit={handleSearchSubmit}
         cartCount={cartCount}
-        onCartClick={handleCartClick}
         priceFrom={filters.priceFrom}
         priceTo={filters.priceTo}
         onPriceFromChange={handlePriceFromChange}
@@ -111,11 +134,14 @@ export const ServicesPage: React.FC = () => {
       {/* Сетка услуг */}
       <div className="services-grid">
         {filteredServices.length > 0 ? (
-          filteredServices.map((service: ServiceTCO) => (
+          filteredServices.map((service: ServiceTCOList) => (
             <ServiceCard
               key={service.id}
               service={service}
               onViewDetails={handleViewDetails}
+              onAddToCart={handleAddToCart}
+              isAuthenticated={isAuthenticated}
+              isAddingToCart={addingServiceId === service.id}
             />
           ))
         ) : (

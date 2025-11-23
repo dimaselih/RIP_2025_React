@@ -1,91 +1,37 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { ROUTES } from '../../utils/constants';
 import './Breadcrumbs.css';
 
-interface BreadcrumbItem {
+interface ICrumb {
   label: string;
-  path: string;
+  path?: string;
 }
 
 interface BreadcrumbsProps {
-  items?: BreadcrumbItem[];
+  crumbs: ICrumb[];
 }
 
-const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items }) => {
-  const location = useLocation();
-  
-  // Маппинг имен для путей
-  const pathLabelMap: Record<string, string> = {
-    catalog_tco: 'Каталог услуг TCO',
-  };
-  
-  // Функция для получения человеко-читаемого названия
-  const getLabel = (path: string): string => {
-    return pathLabelMap[path] || path.charAt(0).toUpperCase() + path.slice(1).replace(/_/g, ' ');
-  };
-  
-  // Автоматически определяем breadcrumbs на основе пути
-  const getBreadcrumbs = (): BreadcrumbItem[] => {
-    if (items) return items;
-    
-    const pathnames = location.pathname.split('/').filter((x) => x);
-    const breadcrumbs: BreadcrumbItem[] = [];
-    
-    // Всегда добавляем "Главная" как первый элемент
-    breadcrumbs.push({
-      label: 'Главная',
-      path: '/',
-    });
-    
-    // Генерируем breadcrumbs для каждого уровня пути
-    if (pathnames.length > 0) {
-      pathnames.forEach((value, index) => {
-        const isNumericId = /^\d+$/.test(value);
-        
-        // Если это ID, показываем как "Детали услуги"
-        if (isNumericId) {
-          breadcrumbs.push({
-            label: 'Детали услуги',
-            path: location.pathname,
-          });
-          return;
-        }
-        
-        const to = `/${pathnames.slice(0, index + 1).join('/')}`;
-        const label = getLabel(value);
-        breadcrumbs.push({
-          label,
-          path: to,
-        });
-      });
-    }
-    
-    return breadcrumbs;
-  };
-  
-  const breadcrumbs = getBreadcrumbs();
-  
+const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ crumbs }) => {
   return (
-    <nav className="breadcrumbs" aria-label="breadcrumb">
-      <ol className="breadcrumb-list">
-        {breadcrumbs.map((crumb, index) => {
-          const isLast = index === breadcrumbs.length - 1;
-          
-          return (
-            <li key={index} className="breadcrumb-item">
-              {isLast ? (
-                <span className="breadcrumb-current">{crumb.label}</span>
-              ) : (
-                <Link to={crumb.path} className="breadcrumb-link">
-                  {crumb.label}
-                </Link>
-              )}
-              {!isLast && <span className="breadcrumb-separator">/</span>}
-            </li>
-          );
-        })}
-      </ol>
-    </nav>
+    <ul className="breadcrumbs">
+      <li>
+        <Link to={ROUTES.HOME}>Главная</Link>
+      </li>
+      {!!crumbs.length &&
+        crumbs.map((crumb, index) => (
+          <React.Fragment key={index}>
+            <li className="slash">/</li>
+            {index === crumbs.length - 1 ? (
+              <li>{crumb.label}</li>
+            ) : (
+              <li>
+                <Link to={crumb.path || ''}>{crumb.label}</Link>
+              </li>
+            )}
+          </React.Fragment>
+        ))}
+    </ul>
   );
 };
 

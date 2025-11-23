@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { Form, InputGroup, Button, Badge } from 'react-bootstrap';
+import { RootState } from '../../store';
 import { IMAGES } from '../../utils/imagePaths';
 
 interface SearchAndCartProps {
@@ -7,7 +10,6 @@ interface SearchAndCartProps {
   onSearchChange: (query: string) => void;
   onSearchSubmit: (query: string) => void;
   cartCount: number;
-  onCartClick: () => void;
   priceFrom?: number;
   priceTo?: number;
   onPriceFromChange: (value: number | undefined) => void;
@@ -19,12 +21,13 @@ export const SearchAndCart: React.FC<SearchAndCartProps> = ({
   onSearchChange,
   onSearchSubmit,
   cartCount,
-  onCartClick,
   priceFrom,
   priceTo,
   onPriceFromChange,
   onPriceToChange
 }) => {
+  const navigate = useNavigate();
+  const { calculation_id } = useSelector((state: RootState) => state.cart);
   const [localQuery, setLocalQuery] = useState(searchQuery);
   const [localPriceFrom, setLocalPriceFrom] = useState<string>(priceFrom?.toString() || '');
   const [localPriceTo, setLocalPriceTo] = useState<string>(priceTo?.toString() || '');
@@ -92,6 +95,14 @@ export const SearchAndCart: React.FC<SearchAndCartProps> = ({
     onPriceToChange(toValue ? Number(toValue) : undefined);
   };
 
+  const handleCartClick = () => {
+    if (calculation_id && cartCount > 0) {
+      // Если есть черновик заявки с услугами, переходим на страницу заявки
+      navigate(`/calculation_tco/${calculation_id}`);
+    }
+    // Если нет черновика или нет услуг, ничего не делаем (кнопка неактивна)
+  };
+
   return (
     <div className="search-cart-section">
       <div className="search-container">
@@ -152,16 +163,17 @@ export const SearchAndCart: React.FC<SearchAndCartProps> = ({
         </div>
       </div>
       <div
-        className={`cart-container ${cartCount > 0 ? 'cart-link' : 'cart-inactive'}`}
-        onClick={cartCount > 0 ? onCartClick : undefined}
-        style={{ cursor: cartCount > 0 ? 'pointer' : 'default' }}
+        className={`cart-container ${calculation_id && cartCount > 0 ? 'cart-link' : 'cart-inactive'}`}
+        onClick={calculation_id && cartCount > 0 ? handleCartClick : undefined}
+        style={{ cursor: calculation_id && cartCount > 0 ? 'pointer' : 'default' }}
+        title={calculation_id && cartCount > 0 ? `Перейти к заявке (${cartCount} услуг)` : 'Корзина пуста'}
       >
         <img
           src={IMAGES.CART}
           alt="Cart"
           className="cart-img"
         />
-        <Badge bg={cartCount > 0 ? "primary" : "secondary"} className="cart-count">
+        <Badge bg={calculation_id && cartCount > 0 ? "primary" : "secondary"} className="cart-count">
           {cartCount}
         </Badge>
       </div>

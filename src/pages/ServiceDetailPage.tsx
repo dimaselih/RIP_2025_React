@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Spinner, Alert } from 'react-bootstrap';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState, AppDispatch } from '../store';
+import { addServiceToCart } from '../store/thunks/calculationThunks';
 import { Breadcrumbs } from '../components/layout';
+import { ROUTES, ROUTE_LABELS } from '../utils/constants';
 import { useService } from '../hooks/useApi';
 import { IMAGES } from '../utils/imagePaths';
 import '../styles/service_detail.css';
@@ -11,13 +15,32 @@ const DEFAULT_IMAGE_URL = IMAGES.DEFAULT_SERVICE;
 export const ServiceDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
   
   const serviceId = id ? parseInt(id) : 0;
   const { service, loading, error } = useService(serviceId);
-
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   const handleGoBack = () => {
     navigate('/catalog_tco');
+  };
+
+  const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      setIsAddingToCart(true);
+      await dispatch(addServiceToCart({ serviceId, quantity: 1 })).unwrap();
+    } catch (error: any) {
+      console.error('Failed to add service to cart:', error);
+      alert('Ошибка добавления в корзину. Попробуйте позже.');
+    } finally {
+      setIsAddingToCart(false);
+    }
   };
 
   if (loading) {
@@ -51,7 +74,12 @@ export const ServiceDetailPage: React.FC = () => {
   return (
     <Container fluid className="service-detail-page">
       {/* Breadcrumbs */}
-      <Breadcrumbs />
+      <Breadcrumbs 
+        crumbs={[
+          { label: ROUTE_LABELS.CATALOG_TCO, path: ROUTES.CATALOG_TCO },
+          { label: service.name || 'Детали услуги' }
+        ]} 
+      />
       
       {/* Back Section */}
       <div className="home-section">
@@ -90,11 +118,11 @@ export const ServiceDetailPage: React.FC = () => {
               {service.fullDescription && (
                 <div className="included-services-section">
                   <Card.Title as="h2" className="section-title">Включенные услуги</Card.Title>
-                  <Card.Text className="description-text">
+                  <div className="description-text">
                     {service.fullDescription.split('\r\n').map((line, index) => (
                       <div key={index}>{line}</div>
                     ))}
-                  </Card.Text>
+                  </div>
                 </div>
               )}
 
@@ -102,8 +130,11 @@ export const ServiceDetailPage: React.FC = () => {
                 <Button
                   variant="primary"
                   className="add-btn-large"
+                  onClick={handleAddToCart}
+                  disabled={!isAuthenticated || isAddingToCart}
+                  title={!isAuthenticated ? 'Войдите, чтобы добавить услугу' : 'Добавить в корзину'}
                 >
-                  ДОБАВИТЬ В КОРЗИНУ
+                  {isAddingToCart ? 'ДОБАВЛЕНИЕ...' : 'ДОБАВИТЬ В КОРЗИНУ'}
                 </Button>
               </div>
             </Card.Body>
