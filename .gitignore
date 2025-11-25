@@ -1,8 +1,9 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
-/.pnp
+node_modules/
+RIP_2025_React/node_modules/
+.pnp
 .pnp.js
 
 # testing
@@ -10,6 +11,9 @@
 
 # production
 /build
+
+# Tauri (should be in feat/tauri-desktop branch)
+src-tauri/
 
 # misc
 .DS_Store
