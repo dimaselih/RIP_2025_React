@@ -42,19 +42,6 @@ const CalculationsPage: React.FC = () => {
   const [dateFromFilter, setDateFromFilter] = useState<string>('');
   const [dateToFilter, setDateToFilter] = useState<string>('');
 
-  useEffect(() => {
-    // Ждем пока проверится авторизация (initialized станет true)
-    if (!initialized) return;
-    
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-
-    // Загружаем заявки
-    loadCalculations();
-  }, [isAuthenticated, initialized, navigate, dispatch, statusFilter, dateFromFilter, dateToFilter]);
-
   const loadCalculations = async () => {
     try {
       setLoading(true);
@@ -75,6 +62,20 @@ const CalculationsPage: React.FC = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // Ждем пока проверится авторизация (initialized станет true)
+    if (!initialized) return;
+    
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    // Загружаем заявки
+    loadCalculations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, initialized, navigate, statusFilter, dateFromFilter, dateToFilter]);
 
   const handleClearFilters = () => {
     setStatusFilter('');

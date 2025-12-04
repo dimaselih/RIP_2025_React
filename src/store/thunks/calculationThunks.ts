@@ -6,9 +6,22 @@ import { setCart } from '../slices/cartSlice';
 // Получение списка заявок
 export const fetchCalculations = createAsyncThunk(
   'calculations/fetchAll',
-  async (_, { rejectWithValue }) => {
+  async (filters?: { status?: string; date_from?: string; date_to?: string }, { rejectWithValue }) => {
     try {
-      const response = await api.calculationTco.calculationTcoList();
+      // Формируем query параметры для фильтрации
+      const query: Record<string, string> = {};
+      if (filters?.status) {
+        query.status = filters.status;
+      }
+      if (filters?.date_from) {
+        query.date_from = filters.date_from;
+      }
+      if (filters?.date_to) {
+        query.date_to = filters.date_to;
+      }
+      
+      const params: any = Object.keys(query).length > 0 ? { query } : {};
+      const response = await api.calculationTco.calculationTcoList(params);
       return (response.data as unknown) as CalculationTCO[];
     } catch (error: any) {
       const errorMessage = error.response?.data?.error || error.message || 'Ошибка загрузки заявок';

@@ -24,11 +24,11 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ crumbs }) => {
             <li className="slash">/</li>
             {index === crumbs.length - 1 ? (
               <li>{crumb.label}</li>
-            ) : (
+              ) : (
               <li>
                 <Link to={crumb.path || ''}>{crumb.label}</Link>
               </li>
-            )}
+              )}
           </React.Fragment>
         ))}
     </ul>
