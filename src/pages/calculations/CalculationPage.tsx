@@ -75,41 +75,53 @@ const CalculationPage: React.FC = () => {
     }
   };
 
+  const updateLocalQuantity = (serviceId: number, quantity: number) => {
+    setCalculation((prev) => {
+      if (!prev?.calculation_services) return prev;
+      return {
+        ...prev,
+        calculation_services: prev.calculation_services.map((item) =>
+          item.service_details?.id === serviceId ? { ...item, quantity } : item
+        ),
+      };
+    });
+  };
+
   const handleQuantityChange = async (serviceId: number, newQuantity: number) => {
-    if (!calculation || newQuantity < 1) return;
+    if (!calculation || !calculation.id || newQuantity < 1) return;
+    const calcId = calculation.id;
+    const prevCalculation = calculation;
+    // Оптимистичное обновление, чтобы не моргал весь экран
+    updateLocalQuantity(serviceId, newQuantity);
     
     try {
       await dispatch(updateCartItem({
-        calculationId: calculation.id,
+        calculationId: calcId,
         serviceId,
         quantity: newQuantity,
       })).unwrap();
-      
-      // Перезагружаем заявку
-      await loadCalculation();
     } catch (err: any) {
       console.error('Failed to update quantity:', err);
+      // Откат при ошибке
+      setCalculation(prevCalculation);
       alert('Ошибка обновления количества');
     }
   };
 
   const handleRemoveService = async (serviceId: number) => {
-    if (!calculation) return;
+    if (!calculation || !calculation.id) return;
+    const calcId = calculation.id;
     
     if (!confirm('Удалить услугу из заявки?')) return;
     
     try {
       await dispatch(removeCartItem({
-        calculationId: calculation.id,
+        calculationId: calcId,
         serviceId,
       })).unwrap();
       
       // Перезагружаем заявку
       await loadCalculation();
-      
-      // Обновляем информацию о корзине
-      const { fetchCartInfo } = await import('../../store/thunks/calculationThunks');
-      await dispatch(fetchCartInfo());
     } catch (err: any) {
       console.error('Failed to remove service:', err);
       alert('Ошибка удаления услуги');
@@ -117,10 +129,11 @@ const CalculationPage: React.FC = () => {
   };
 
   const handleFormCalculation = async () => {
-    if (!calculation || !startDate || !endDate) {
+    if (!calculation || !calculation.id || !startDate || !endDate) {
       alert('Заполните даты начала и окончания эксплуатации');
       return;
     }
+    const calcId = calculation.id;
     
     if (new Date(startDate) > new Date(endDate)) {
       alert('Дата начала не может быть позже даты окончания');
@@ -130,7 +143,7 @@ const CalculationPage: React.FC = () => {
     try {
       setFormLoading(true);
       await dispatch(formCalculation({
-        id: calculation.id,
+        id: calcId,
         startDate,
         endDate,
       })).unwrap();
@@ -146,12 +159,14 @@ const CalculationPage: React.FC = () => {
   };
 
   const handleDeleteCalculation = async () => {
-    if (!calculation) return;
+    if (!calculation || !calculation.id) return;
+    
+    const calcId = calculation.id;
     
     if (!confirm('Удалить заявку? Это действие необратимо.')) return;
     
     try {
-      await dispatch(deleteCalculation(calculation.id)).unwrap();
+      await dispatch(deleteCalculation(calcId)).unwrap();
       alert('Заявка удалена');
       navigate('/calculations_tco');
     } catch (err: any) {
@@ -161,11 +176,12 @@ const CalculationPage: React.FC = () => {
   };
 
   const formatPrice = (price: any): string => {
+    if (price === null || price === undefined) return '0.00';
     const numPrice = typeof price === 'string' ? parseFloat(price) : price;
     return isNaN(numPrice) ? '0.00' : numPrice.toFixed(2);
   };
 
-  const getPriceTypeLabel = (priceType: string): string => {
+  const getPriceTypeLabel = (priceType?: string): string => {
     switch (priceType) {
       case 'monthly':
         return '/мес';
@@ -208,23 +224,27 @@ const CalculationPage: React.FC = () => {
   }
 
   const isDraft = calculation.status === 'draft';
-  const hasServices = calculation.calculation_services && 
-                      calculation.calculation_services.filter(item => item.service_details).length > 0;
+  const services = (calculation.calculation_services ?? []).filter(
+    (item): item is typeof item & { service_details: NonNullable<typeof item.service_details>; quantity: number } =>
+      !!item.service_details && typeof item.quantity === 'number'
+  );
+  const hasServices = services.length > 0;
+  const statusLabel = calculation.status ? statusMap[calculation.status as CalculationStatus] : 'Статус неизвестен';
 
   return (
     <div className="calculation-page">
       <Breadcrumbs 
         crumbs={[
           { label: ROUTE_LABELS.CALCULATIONS_TCO, path: ROUTES.CALCULATIONS_TCO },
-          { label: calculation ? `Заявка #${calculation.id}` : ROUTE_LABELS.CALCULATION_TCO }
+          { label: calculation && calculation.id ? `Заявка #${calculation.id}` : ROUTE_LABELS.CALCULATION_TCO }
         ]} 
       />
       <div className="calculation-container">
         <div className="calculation-header">
           <div className="calculation-header-left">
-            <h1 className="calculation-title">Заявка #{calculation.id}</h1>
+            <h1 className="calculation-title">Заявка #{calculation.id ?? '—'}</h1>
             <span className={`calculation-status status-${calculation.status}`}>
-              {statusMap[calculation.status]}
+              {statusLabel}
             </span>
           </div>
           <button 
@@ -238,7 +258,9 @@ const CalculationPage: React.FC = () => {
         <div className="calculation-info">
           <div className="calculation-info-item">
             <span className="info-label">Дата создания:</span>
-            <span className="info-value">{new Date(calculation.created_at).toLocaleDateString('ru-RU')}</span>
+            <span className="info-value">
+              {calculation.created_at ? new Date(calculation.created_at).toLocaleDateString('ru-RU') : '—'}
+            </span>
           </div>
           {calculation.formed_at && (
             <div className="calculation-info-item">
@@ -250,7 +272,7 @@ const CalculationPage: React.FC = () => {
             <div className="calculation-info-item">
               <span className="info-label">Период обслуживания:</span>
               <span className="info-value">
-                {new Date(calculation.start_date).toLocaleDateString('ru-RU')} - {new Date(calculation.end_date!).toLocaleDateString('ru-RU')}
+                {calculation.start_date ? new Date(calculation.start_date).toLocaleDateString('ru-RU') : '—'} - {calculation.end_date ? new Date(calculation.end_date).toLocaleDateString('ru-RU') : '—'}
               </span>
             </div>
           )}
@@ -316,8 +338,12 @@ const CalculationPage: React.FC = () => {
             <div className="services-list">
               <h2 className="services-title">Услуги в заявке</h2>
               <div className="calculation-services-list">
-                {calculation.calculation_services?.filter(item => item.service_details).map((item) => (
-                  <div key={item.id} className="calculation-service-item">
+                {services.map((item) => {
+                  const serviceId = item.service_details.id;
+                  const quantityValue = item.quantity ?? 1;
+                  
+                  return (
+                  <div key={item.id ?? serviceId ?? Math.random()} className="calculation-service-item">
                     <div className="calculation-service-item-image">
                       {item.service_details.image_url ? (
                         <img 
@@ -343,22 +369,24 @@ const CalculationPage: React.FC = () => {
                             <div className="quantity-control">
                               <button 
                                 className="quantity-btn"
-                                onClick={() => handleQuantityChange(item.service_details.id, item.quantity - 1)}
-                                disabled={item.quantity <= 1}
+                                onClick={() => { if (!serviceId) return; handleQuantityChange(serviceId, quantityValue - 1); }}
+                                disabled={!serviceId || quantityValue <= 1}
                               >
                                 −
                               </button>
-                              <span className="quantity-value">{item.quantity}</span>
+                              <span className="quantity-value">{quantityValue}</span>
                               <button 
                                 className="quantity-btn"
-                                onClick={() => handleQuantityChange(item.service_details.id, item.quantity + 1)}
+                                onClick={() => { if (!serviceId) return; handleQuantityChange(serviceId, quantityValue + 1); }}
+                                disabled={!serviceId}
                               >
                                 +
                               </button>
                             </div>
                             <button 
                               className="remove-service-btn"
-                              onClick={() => handleRemoveService(item.service_details.id)}
+                              onClick={() => { if (!serviceId) return; handleRemoveService(serviceId); }}
+                              disabled={!serviceId}
                               title="Удалить услугу"
                             >
                               🗑️
@@ -373,7 +401,7 @@ const CalculationPage: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                ))}
+                );})}
               </div>
             </div>
 

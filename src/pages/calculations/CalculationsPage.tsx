@@ -83,7 +83,7 @@ const CalculationsPage: React.FC = () => {
     setDateToFilter('');
   };
 
-  const formatDate = (dateString?: string) => {
+  const formatDate = (dateString?: string | null) => {
     if (!dateString) return '—';
     const date = new Date(dateString);
     return date.toLocaleDateString('ru-RU', {
@@ -93,13 +93,15 @@ const CalculationsPage: React.FC = () => {
     });
   };
 
-  const formatCost = (cost?: number) => {
-    if (!cost) return '—';
+  const formatCost = (cost?: number | string | null) => {
+    if (cost === null || cost === undefined) return '—';
+    const num = typeof cost === 'string' ? parseFloat(cost) : cost;
+    if (Number.isNaN(num)) return '—';
     return new Intl.NumberFormat('ru-RU', {
       style: 'currency',
       currency: 'RUB',
       minimumFractionDigits: 0,
-    }).format(cost);
+    }).format(num);
   };
 
   const handleRowClick = (id: number) => {
@@ -153,11 +155,9 @@ const CalculationsPage: React.FC = () => {
               onChange={(e) => setStatusFilter(e.target.value)}
             >
               <option value="">Все</option>
-              <option value="draft">Черновик</option>
               <option value="formed">Сформирована</option>
               <option value="completed">Завершена</option>
               <option value="rejected">Отклонена</option>
-              <option value="deleted">Удалена</option>
             </select>
           </div>
 
@@ -214,24 +214,29 @@ const CalculationsPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {calculations.map((calc) => (
-                  <tr 
-                    key={calc.id} 
-                    onClick={() => handleRowClick(calc.id)}
-                    className="calculation-row"
-                  >
-                    <td>{calc.id}</td>
-                    <td>
-                      <span className={`status-badge ${statusColors[calc.status]}`}>
-                        {statusLabels[calc.status]}
-                      </span>
-                    </td>
-                    <td>{formatDate(calc.created_at)}</td>
-                    <td>{formatDate(calc.formed_at)}</td>
-                    <td className="cost-cell">{formatCost(calc.total_cost)}</td>
-                    <td>{calc.duration_months || '—'}</td>
-                  </tr>
-                ))}
+                {calculations
+                  .filter(
+                    (calc): calc is CalculationTCO & { id: number; status: CalculationStatus } =>
+                      typeof calc.id === 'number' && !!calc.status && calc.status !== 'draft'
+                  )
+                  .map((calc) => (
+                    <tr 
+                      key={calc.id} 
+                      onClick={() => handleRowClick(calc.id)}
+                      className="calculation-row"
+                    >
+                      <td>{calc.id}</td>
+                      <td>
+                        <span className={`status-badge ${statusColors[calc.status]}`}>
+                          {statusLabels[calc.status]}
+                        </span>
+                      </td>
+                      <td>{formatDate(calc.created_at)}</td>
+                      <td>{formatDate(calc.formed_at)}</td>
+                      <td className="cost-cell">{formatCost(calc.total_cost)}</td>
+                      <td>{calc.duration_months || '—'}</td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>

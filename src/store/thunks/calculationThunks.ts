@@ -1,12 +1,12 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { api } from '../../api';
 import { CalculationTCO, FormCalculationTCO } from '../../api/Api';
-import { setCart } from '../slices/cartSlice';
+// Корзину больше не обновляем отдельным запросом
 
 // Получение списка заявок
 export const fetchCalculations = createAsyncThunk(
   'calculations/fetchAll',
-  async (filters?: { status?: string; date_from?: string; date_to?: string }, { rejectWithValue }) => {
+  async (filters: { status?: string; date_from?: string; date_to?: string } = {}, { rejectWithValue }) => {
     try {
       // Формируем query параметры для фильтрации
       const query: Record<string, string> = {};
@@ -47,12 +47,9 @@ export const fetchCalculation = createAsyncThunk(
 // Добавление услуги в корзину (заявку-черновик)
 export const addServiceToCart = createAsyncThunk(
   'calculations/addToCart',
-  async ({ serviceId }: { serviceId: number; quantity?: number }, { dispatch, rejectWithValue }) => {
+  async ({ serviceId }: { serviceId: number; quantity?: number }, { rejectWithValue }) => {
     try {
       const response = await api.serviceTco.serviceTcoAddToCartCreate(serviceId.toString());
-      
-      // Обновляем корзину после добавления
-      await dispatch(fetchCartInfo());
       
       return response.data;
     } catch (error: any) {
@@ -127,15 +124,12 @@ export const removeCartItem = createAsyncThunk(
 // Формирование заявки (из черновика в сформированную)
 export const formCalculation = createAsyncThunk(
   'calculations/form',
-  async ({ id, startDate, endDate }: { id: number; startDate: string; endDate: string }, { dispatch, rejectWithValue }) => {
+  async ({ id, startDate, endDate }: { id: number; startDate: string; endDate: string }, { rejectWithValue }) => {
     try {
       const response = await api.calculationTco.calculationTcoFormUpdate(
         id.toString(),
         { start_date: startDate, end_date: endDate } as FormCalculationTCO
       );
-      
-      // Обновляем корзину (черновик больше не существует)
-      await dispatch(fetchCartInfo());
       
       return response.data;
     } catch (error: any) {
@@ -166,12 +160,9 @@ export const updateCalculation = createAsyncThunk(
 // Удаление заявки (логическое удаление черновика)
 export const deleteCalculation = createAsyncThunk(
   'calculations/delete',
-  async (id: number, { dispatch, rejectWithValue }) => {
+  async (id: number, { rejectWithValue }) => {
     try {
       await api.calculationTco.calculationTcoDeleteDelete(id.toString());
-      
-      // Обновляем корзину (черновик удален)
-      await dispatch(fetchCartInfo());
       
       return id;
     } catch (error: any) {
@@ -181,29 +172,7 @@ export const deleteCalculation = createAsyncThunk(
   }
 );
 
-// Получение информации о корзине
-export const fetchCartInfo = createAsyncThunk(
-  'calculations/fetchCartInfo',
-  async (_, { dispatch, rejectWithValue }) => {
-    try {
-      const response = await api.cartTco.cartTcoList();
-      const data = (response.data as unknown) as { calculation_id: number | null; services_count: number };
-      dispatch(setCart({
-        calculation_id: data.calculation_id,
-        services_count: data.services_count,
-      }));
-      return data;
-    } catch (error: any) {
-      // Если не авторизован, просто возвращаем пустую корзину
-      if (error.response?.status === 401) {
-        dispatch(setCart({ calculation_id: null, services_count: 0 }));
-        return { calculation_id: null, services_count: 0 };
-      }
-      const errorMessage = error.response?.data?.error || error.message || 'Ошибка загрузки корзины';
-      return rejectWithValue(errorMessage);
-    }
-  }
-);
+// Отдельный запрос корзины убран: состояние корзины управляется через заявки
 
 
 

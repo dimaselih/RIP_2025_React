@@ -8,15 +8,14 @@ import { HomePage, ServicesPage, ServiceDetailPage, ProfilePage } from './pages'
 import { LoginPage, RegisterPage } from './pages/authentication';
 import { CalculationsPage, CalculationPage } from './pages/calculations';
 import { dest_root } from './config/target_config';
-import { checkAuth } from './store/thunks/authThunks';
+import { logoutUser } from './store/thunks/authThunks';
 
 function AppContent() {
   const dispatch = useDispatch<AppDispatch>();
 
-  // Проверка авторизации при загрузке приложения
+  // При загрузке приложения сбрасываем серверную сессию, чтобы логин не переживал F5
   useEffect(() => {
-    // Проверяем авторизацию и корзину только один раз при монтировании
-    dispatch(checkAuth());
+    dispatch(logoutUser());
   }, [dispatch]);
 
   return (

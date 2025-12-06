@@ -223,6 +223,14 @@ export interface CustomUser {
    */
   email: string;
   /**
+   * Дата регистрации
+   */
+  date_joined?: string;
+  /**
+   * Идентификатор пользователя
+   */
+  id?: number;
+  /**
    * Password
    * Пароль пользователя
    * @minLength 1

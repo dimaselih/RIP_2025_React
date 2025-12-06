@@ -4,13 +4,13 @@ import { Container, Spinner, Alert, Button } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
 import { setSearch, setPriceFrom, setPriceTo } from '../store/slices/filtersSlice';
-import { addServiceToCart, fetchCartInfo } from '../store/thunks/calculationThunks';
+import { addServiceToCart } from '../store/thunks/calculationThunks';
 import { Breadcrumbs } from '../components/layout';
 import { ROUTE_LABELS } from '../utils/constants';
 import { ServiceCard } from '../components/ui/ServiceCard';
 import { SearchAndCart } from '../components/ui/SearchAndCart';
 import { ServiceTCOList } from '../api/Api';
-import { useApi } from '../hooks/useApi';
+import { fetchServices } from '../store/thunks/serviceThunks';
 import '../styles/catalog.css';
 
 export const ServicesPage: React.FC = () => {
@@ -21,20 +21,32 @@ export const ServicesPage: React.FC = () => {
   const { services_count: cartCount } = useSelector((state: RootState) => state.cart);
   const [searchQuery, setSearchQuery] = useState('');
   const [addingServiceId, setAddingServiceId] = useState<number | null>(null);
+  const [services, setServices] = useState<ServiceTCOList[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
-  // Загружаем корзину при переходе на страницу каталога
-  useEffect(() => {
-    if (isAuthenticated) {
-      dispatch(fetchCartInfo());
+  // Загружаем услуги через thunk
+  const loadServices = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await dispatch(fetchServices({
+        search: filters.search,
+        price_from: filters.priceFrom,
+        price_to: filters.priceTo,
+      })).unwrap();
+      setServices(result);
+    } catch (err: any) {
+      setError(err instanceof Error ? err.message : 'Ошибка загрузки услуг');
+    } finally {
+      setLoading(false);
     }
-  }, [isAuthenticated, dispatch]);
+  };
 
-  // Используем хук для получения данных с фильтрацией на бэкенде
-  const { services, loading, error, refetch } = useApi(
-    filters.search, 
-    filters.priceFrom, 
-    filters.priceTo
-  );
+  useEffect(() => {
+    loadServices();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.search, filters.priceFrom, filters.priceTo]);
 
   // Дополнительная фильтрация на клиенте (если бэкенд не поддерживает некоторые фильтры)
   const filteredServices = services.filter((service: ServiceTCOList) => {
@@ -108,7 +120,7 @@ export const ServicesPage: React.FC = () => {
         <Alert variant="danger">
           <Alert.Heading>Ошибка загрузки</Alert.Heading>
           <p>{error}</p>
-          <Button onClick={refetch} variant="outline-danger">Повторить</Button>
+          <Button onClick={loadServices} variant="outline-danger">Повторить</Button>
         </Alert>
       </Container>
     );

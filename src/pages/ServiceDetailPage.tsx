@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Spinner, Alert } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
 import { addServiceToCart } from '../store/thunks/calculationThunks';
+import { fetchService } from '../store/thunks/serviceThunks';
 import { Breadcrumbs } from '../components/layout';
 import { ROUTES, ROUTE_LABELS } from '../utils/constants';
-import { useService } from '../hooks/useApi';
 import { IMAGES } from '../utils/imagePaths';
+import { ServiceTCOList } from '../api/Api';
 import '../styles/service_detail.css';
 
 const DEFAULT_IMAGE_URL = IMAGES.DEFAULT_SERVICE;
@@ -19,8 +20,31 @@ export const ServiceDetailPage: React.FC = () => {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
   
   const serviceId = id ? parseInt(id) : 0;
-  const { service, loading, error } = useService(serviceId);
+  const [service, setService] = useState<ServiceTCOList | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+
+  useEffect(() => {
+    const loadService = async () => {
+      if (!serviceId) {
+        setError('Услуга не найдена');
+        return;
+      }
+      try {
+        setLoading(true);
+        setError(null);
+        const result = await dispatch(fetchService(serviceId)).unwrap();
+        setService(result);
+      } catch (err: any) {
+        setError(err instanceof Error ? err.message : 'Ошибка загрузки услуги');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadService();
+  }, [dispatch, serviceId]);
 
   const handleGoBack = () => {
     navigate('/catalog_tco');

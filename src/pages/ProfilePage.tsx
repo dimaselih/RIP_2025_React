@@ -114,7 +114,7 @@ const ProfilePage: React.FC = () => {
           <div className="info-row">
             <span className="info-label">Дата регистрации:</span>
             <span className="info-value">
-              {new Date(user.date_joined).toLocaleDateString('ru-RU')}
+              {user.date_joined ? new Date(user.date_joined).toLocaleDateString('ru-RU') : '—'}
             </span>
           </div>
         </div>

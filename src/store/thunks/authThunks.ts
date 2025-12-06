@@ -4,7 +4,6 @@ import { Login, CustomUser } from '../../api/Api';
 import { setUser, setLoading, setError, logout as logoutAction } from '../slices/authSlice';
 import { clearCart } from '../slices/cartSlice';
 import { resetFilters } from '../slices/filtersSlice';
-import type { AppDispatch, RootState } from '../index';
 
 // Логин пользователя
 export const loginUser = createAsyncThunk(
@@ -21,13 +20,7 @@ export const loginUser = createAsyncThunk(
 
       if ((response.data as any)?.status === 'ok') {
         // После успешного логина получаем профиль пользователя
-        const profileResult = await dispatch(fetchUserProfile());
-        
-        // Если профиль получен - загружаем корзину
-        if (fetchUserProfile.fulfilled.match(profileResult)) {
-          const { fetchCartInfo } = await import('./calculationThunks');
-          dispatch(fetchCartInfo());
-        }
+        await dispatch(fetchUserProfile());
         
         dispatch(setLoading(false));
         return response.data;
@@ -92,7 +85,7 @@ export const fetchUserProfile = createAsyncThunk(
   async (_, { dispatch, rejectWithValue }) => {
     try {
       const response = await api.user.userProfileList();
-      const profile = response.data as CustomUser;
+      const profile = response.data as unknown as CustomUser;
       dispatch(setUser(profile));
       return profile;
     } catch (error: any) {
@@ -112,12 +105,12 @@ export const fetchUserProfile = createAsyncThunk(
 // Обновление профиля пользователя
 export const updateUserProfile = createAsyncThunk(
   'auth/updateProfile',
-  async (profileData: CustomUser, { dispatch, rejectWithValue }) => {
+  async (profileData: Partial<CustomUser>, { dispatch, rejectWithValue }) => {
     try {
       dispatch(setLoading(true));
       dispatch(setError(null));
 
-      const response = await api.user.userProfileUpdateUpdate(profileData);
+      const response = await api.user.userProfileUpdateUpdate(profileData as CustomUser);
       
       // Обновляем профиль в store
       await dispatch(fetchUserProfile());
@@ -157,12 +150,7 @@ export const checkAuth = createAsyncThunk(
   'auth/checkAuth',
   async (_, { dispatch }) => {
     try {
-      const result = await dispatch(fetchUserProfile());
-      // Если получили профиль - загружаем корзину
-      if (fetchUserProfile.fulfilled.match(result)) {
-        const { fetchCartInfo } = await import('./calculationThunks');
-        dispatch(fetchCartInfo());
-      }
+      await dispatch(fetchUserProfile());
     } catch (error) {
       // Если не авторизован, просто игнорируем
       dispatch(setUser(null));

@@ -6,7 +6,7 @@ import { ServiceTCOList } from '../../api/Api';
 export const fetchServices = createAsyncThunk(
   'services/fetchAll',
   async (
-    params?: { search?: string; price_from?: number; price_to?: number },
+    params: { search?: string; price_from?: number; price_to?: number } = {},
     { rejectWithValue }
   ) => {
     try {
