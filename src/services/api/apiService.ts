@@ -9,7 +9,7 @@ const API_BASE_URL = dest_api;
 
 // Флаг для использования mock данных (true = mock, false = реальный API)
 // По умолчанию используем реальный API
-const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK === 'true';
+const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK === 'false';
 
 // Примечание: подробные debug-логи отключены для чистоты консоли
 
@@ -70,7 +70,8 @@ class ApiService {
       if (priceTo !== undefined) params.append('price_to', priceTo.toString());
       
       const queryString = params.toString();
-      const url = `/api/servicetco/${queryString ? '?' + queryString : ''}`;
+      // Бэкенд использует snake_case в путях: /api/service_tco/
+      const url = `/api/service_tco/${queryString ? '?' + queryString : ''}`;
       
       // console.debug('[API] Request URL with filters:', url);
       
@@ -97,7 +98,7 @@ class ApiService {
     
     // Пытаемся получить данные с бэкенда
     try {
-      return await this.request<ServiceTCO>(`/api/servicetco/${id}/`);
+      return await this.request<ServiceTCO>(`/api/service_tco/${id}/`);
     } catch (error) {
       // Если нет доступа к бэкенду, используем mock данные
       console.warn('[FALLBACK TO MOCK] Backend unavailable, using mock data');
@@ -118,7 +119,7 @@ class ApiService {
       return [];
     }
     
-    return this.request<CalculationTCO[]>('/api/calculation/');
+    return this.request<CalculationTCO[]>('/api/calculation_tco/');
   }
 
   async getCalculation(id: number): Promise<CalculationTCO> {
@@ -128,7 +129,7 @@ class ApiService {
       throw new Error('Calculation not implemented in mock data');
     }
     
-    return this.request<CalculationTCO>(`/api/calculation/${id}/`);
+    return this.request<CalculationTCO>(`/api/calculation_tco/${id}/`);
   }
 
   // Получение количества товаров в корзине

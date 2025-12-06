@@ -10,16 +10,10 @@
     {
       "identifier": "http:default",
       "allow": [
+        { "url": "http://192.168.1.211/**" },
+        { "url": "https://192.168.1.211/**" },
         { "url": "http://localhost/**" },
-        { "url": "http://127.0.0.1/**" },
-        { "url": "http://192.168.*/**" },
-        { "url": "http://10.*/**" },
-        { "url": "http://172.*/**" },
-        { "url": "https://localhost/**" },
-        { "url": "https://127.0.0.1/**" },
-        { "url": "https://192.168.*/**" },
-        { "url": "https://10.*/**" },
-        { "url": "https://172.*/**" }
+        { "url": "https://localhost/**" }
       ],
       "deny": []
     },

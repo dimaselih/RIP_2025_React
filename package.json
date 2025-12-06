@@ -29,9 +29,9 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "react-scripts test",
-    "tauri": "tauri",
-    "tauri:dev": "cross-env BROWSER=none tauri dev",
-    "tauri:build": "tauri build"
+    "tauri": "pnpm exec tauri",
+    "tauri:dev": "cross-env BROWSER=none pnpm exec tauri dev",
+    "tauri:build": "pnpm exec tauri build"
   },
   "eslintConfig": {
     "extends": [
