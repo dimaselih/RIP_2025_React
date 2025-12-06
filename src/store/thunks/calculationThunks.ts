@@ -1,6 +1,7 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { api } from '../../api';
-import { CalculationTCO, FormCalculationTCO } from '../../api/Api';
+import { CalculationTCO, FormCalculationTCO, CompleteCalculationTCO } from '../../api/Api';
+import { setCart } from '../slices/cartSlice';
 // Корзину больше не обновляем отдельным запросом
 
 // Получение списка заявок
@@ -47,10 +48,10 @@ export const fetchCalculation = createAsyncThunk(
 // Добавление услуги в корзину (заявку-черновик)
 export const addServiceToCart = createAsyncThunk(
   'calculations/addToCart',
-  async ({ serviceId }: { serviceId: number; quantity?: number }, { rejectWithValue }) => {
+  async ({ serviceId, quantity = 1 }: { serviceId: number; quantity?: number }, { rejectWithValue, dispatch }) => {
     try {
       const response = await api.serviceTco.serviceTcoAddToCartCreate(serviceId.toString());
-      
+      await dispatch(fetchCartInfo());
       return response.data;
     } catch (error: any) {
       const errorMessage = error.response?.data?.error || error.message || 'Ошибка добавления услуги в корзину';
@@ -112,6 +113,7 @@ export const removeCartItem = createAsyncThunk(
       
       // Обновляем детали заявки
       await dispatch(fetchCalculation(calculationId));
+      await dispatch(fetchCartInfo());
       
       return { calculationId, serviceId };
     } catch (error: any) {
@@ -172,7 +174,47 @@ export const deleteCalculation = createAsyncThunk(
   }
 );
 
-// Отдельный запрос корзины убран: состояние корзины управляется через заявки
+// Завершение/отклонение заявки (для модератора)
+export const completeCalculation = createAsyncThunk(
+  'calculations/complete',
+  async (
+    { id, action, moderatorComment }: { id: number; action: 'complete' | 'reject'; moderatorComment?: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      const payload: CompleteCalculationTCO = { action, moderator_comment: moderatorComment };
+      const response = await api.calculationTco.calculationTcoCompleteUpdate(id.toString(), payload);
+      return response.data as CalculationTCO | any;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || error.message || 'Ошибка смены статуса заявки';
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+// Получение информации о корзине
+export const fetchCartInfo = createAsyncThunk(
+  'calculations/fetchCartInfo',
+  async (_, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await api.cartTco.cartTcoList();
+      const data = (response.data as unknown) as { calculation_id: number | null; services_count: number };
+      dispatch(setCart({
+        calculation_id: data.calculation_id,
+        services_count: data.services_count,
+      }));
+      return data;
+    } catch (error: any) {
+      // Если не авторизован, просто возвращаем пустую корзину
+      if (error.response?.status === 401) {
+        dispatch(setCart({ calculation_id: null, services_count: 0 }));
+        return { calculation_id: null, services_count: 0 };
+      }
+      const errorMessage = error.response?.data?.error || error.message || 'Ошибка загрузки корзины';
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
 
 
 

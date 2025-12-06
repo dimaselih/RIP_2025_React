@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../store';
-import { fetchCalculations } from '../../store/thunks/calculationThunks';
-import { useDispatch } from 'react-redux';
-import { AppDispatch } from '../../store';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '../../store';
+import { fetchCalculations, completeCalculation } from '../../store/thunks/calculationThunks';
 import { CalculationTCO } from '../../api/Api';
 import { Breadcrumbs } from '../../components/layout';
 import { ROUTE_LABELS } from '../../utils/constants';
@@ -31,20 +29,27 @@ const statusColors: Record<CalculationStatus, string> = {
 const CalculationsPage: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const { isAuthenticated, initialized } = useSelector((state: RootState) => state.auth);
+  const { isAuthenticated, initialized, user } = useSelector((state: RootState) => state.auth);
   
   const [calculations, setCalculations] = useState<CalculationTCO[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // первичная загрузка
+  const [refreshing, setRefreshing] = useState(false); // обновления по short-poll
   const [error, setError] = useState<string | null>(null);
+  const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
   
   // Фильтры
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [dateFromFilter, setDateFromFilter] = useState<string>('');
   const [dateToFilter, setDateToFilter] = useState<string>('');
 
-  const loadCalculations = async () => {
+  const loadCalculations = async (options?: { silent?: boolean }) => {
+    const silent = options?.silent;
     try {
-      setLoading(true);
+      if (silent) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
       setError(null);
       
       // Формируем параметры для фильтрации
@@ -59,7 +64,11 @@ const CalculationsPage: React.FC = () => {
       console.error('Failed to load calculations:', err);
       setError('Ошибка загрузки заявок');
     } finally {
-      setLoading(false);
+      if (silent) {
+        setRefreshing(false);
+      } else {
+        setLoading(false);
+      }
     }
   };
 
@@ -74,6 +83,8 @@ const CalculationsPage: React.FC = () => {
 
     // Загружаем заявки
     loadCalculations();
+    const id = setInterval(() => loadCalculations({ silent: true }), 5000);
+    return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, initialized, navigate, statusFilter, dateFromFilter, dateToFilter]);
 
@@ -108,6 +119,18 @@ const CalculationsPage: React.FC = () => {
     navigate(`/calculation_tco/${id}`);
   };
 
+  const handleStatusChange = async (id: number, action: 'complete' | 'reject') => {
+    try {
+      setActionLoadingId(id);
+      await dispatch(completeCalculation({ id, action })).unwrap();
+      await loadCalculations({ silent: true });
+    } catch (err: any) {
+      alert(err || 'Не удалось сменить статус');
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
   if (!initialized || loading) {
     return (
       <div className="calculations-page">
@@ -121,7 +144,7 @@ const CalculationsPage: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (error && !refreshing) {
     return (
       <div className="calculations-page">
         <div className="calculations-container">
@@ -141,7 +164,8 @@ const CalculationsPage: React.FC = () => {
       <Breadcrumbs crumbs={[{ label: ROUTE_LABELS.CALCULATIONS_TCO }]} />
       <div className="calculations-container">
         <div className="calculations-header">
-          <h1 className="calculations-title">Мои заявки</h1>
+          <h1 className="calculations-title">Заявки</h1>
+          {refreshing && <span className="small-spinner" aria-label="Обновление..." />}
         </div>
 
         {/* Фильтры */}
@@ -211,19 +235,23 @@ const CalculationsPage: React.FC = () => {
                   <th>Дата формирования</th>
                   <th>Стоимость</th>
                   <th>Период (мес.)</th>
+                  {(user?.is_staff || user?.is_superuser) && <th>Действия</th>}
                 </tr>
               </thead>
               <tbody>
                 {calculations
                   .filter(
                     (calc): calc is CalculationTCO & { id: number; status: CalculationStatus } =>
-                      typeof calc.id === 'number' && !!calc.status && calc.status !== 'draft'
+                      typeof calc.id === 'number' &&
+                      !!calc.status &&
+                      calc.status !== 'draft' &&
+                      calc.status !== 'deleted'
                   )
                   .map((calc) => (
                     <tr 
                       key={calc.id} 
-                      onClick={() => handleRowClick(calc.id)}
                       className="calculation-row"
+                      onClick={() => handleRowClick(calc.id)}
                     >
                       <td>{calc.id}</td>
                       <td>
@@ -235,6 +263,24 @@ const CalculationsPage: React.FC = () => {
                       <td>{formatDate(calc.formed_at)}</td>
                       <td className="cost-cell">{formatCost(calc.total_cost)}</td>
                       <td>{calc.duration_months || '—'}</td>
+                      {(user?.is_staff || user?.is_superuser) && (
+                        <td className="actions-cell">
+                          <button
+                            className="status-btn success"
+                            onClick={(e) => { e.stopPropagation(); handleStatusChange(calc.id, 'complete'); }}
+                            disabled={actionLoadingId === calc.id || calc.status !== 'formed'}
+                          >
+                            {actionLoadingId === calc.id ? '...' : 'Завершить'}
+                          </button>
+                          <button
+                            className="status-btn danger"
+                            onClick={(e) => { e.stopPropagation(); handleStatusChange(calc.id, 'reject'); }}
+                            disabled={actionLoadingId === calc.id || calc.status !== 'formed'}
+                          >
+                            Отклонить
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))}
               </tbody>

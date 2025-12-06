@@ -4,7 +4,7 @@ import { Container, Spinner, Alert, Button } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
 import { setSearch, setPriceFrom, setPriceTo } from '../store/slices/filtersSlice';
-import { addServiceToCart } from '../store/thunks/calculationThunks';
+import { addServiceToCart, fetchCartInfo } from '../store/thunks/calculationThunks';
 import { Breadcrumbs } from '../components/layout';
 import { ROUTE_LABELS } from '../utils/constants';
 import { ServiceCard } from '../components/ui/ServiceCard';
@@ -45,8 +45,11 @@ export const ServicesPage: React.FC = () => {
 
   useEffect(() => {
     loadServices();
+    if (isAuthenticated) {
+      dispatch(fetchCartInfo());
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.search, filters.priceFrom, filters.priceTo]);
+  }, [filters.search, filters.priceFrom, filters.priceTo, isAuthenticated]);
 
   // Дополнительная фильтрация на клиенте (если бэкенд не поддерживает некоторые фильтры)
   const filteredServices = services.filter((service: ServiceTCOList) => {
@@ -95,6 +98,7 @@ export const ServicesPage: React.FC = () => {
     try {
       setAddingServiceId(serviceId);
       await dispatch(addServiceToCart({ serviceId, quantity: 1 })).unwrap();
+      await dispatch(fetchCartInfo());
     } catch (error: any) {
       console.error('Failed to add service to cart:', error);
       alert('Ошибка добавления в корзину. Попробуйте позже.');

@@ -4,6 +4,7 @@ import { Login, CustomUser } from '../../api/Api';
 import { setUser, setLoading, setError, logout as logoutAction } from '../slices/authSlice';
 import { clearCart } from '../slices/cartSlice';
 import { resetFilters } from '../slices/filtersSlice';
+import { fetchCartInfo } from './calculationThunks';
 
 // Логин пользователя
 export const loginUser = createAsyncThunk(
@@ -20,7 +21,11 @@ export const loginUser = createAsyncThunk(
 
       if ((response.data as any)?.status === 'ok') {
         // После успешного логина получаем профиль пользователя
-        await dispatch(fetchUserProfile());
+        const profileResult = await dispatch(fetchUserProfile());
+        
+        if (fetchUserProfile.fulfilled.match(profileResult)) {
+          dispatch(fetchCartInfo());
+        }
         
         dispatch(setLoading(false));
         return response.data;
@@ -113,7 +118,10 @@ export const updateUserProfile = createAsyncThunk(
       const response = await api.user.userProfileUpdateUpdate(profileData as CustomUser);
       
       // Обновляем профиль в store
-      await dispatch(fetchUserProfile());
+      const result = await dispatch(fetchUserProfile());
+      if (fetchUserProfile.fulfilled.match(result)) {
+        dispatch(fetchCartInfo());
+      }
       
       dispatch(setLoading(false));
       return response.data;

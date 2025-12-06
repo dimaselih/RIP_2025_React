@@ -23,6 +23,15 @@
   margin-bottom: 32px;
 }
 
+.small-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(88, 173, 110, 0.25);
+  border-top-color: #58ad6e;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
 .calculations-title {
   font-family: 'Source Sans 3', sans-serif;
   font-weight: 700;
@@ -192,6 +201,42 @@
 .cost-cell {
   font-weight: 600;
   color: #58ad6e;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 10px;
+}
+
+.status-btn {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.2s ease;
+  font-weight: 700;
+  font-size: 14px;
+  color: #fff;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+}
+
+.status-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.status-btn.success {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.status-btn.danger {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.status-btn:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.16);
 }
 
 /* Status badges */
