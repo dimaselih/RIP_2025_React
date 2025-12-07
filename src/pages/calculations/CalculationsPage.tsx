@@ -36,11 +36,19 @@ const CalculationsPage: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false); // обновления по short-poll
   const [error, setError] = useState<string | null>(null);
   const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
+  const [creatorFilter, setCreatorFilter] = useState<string>('');
   
   // Фильтры
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [dateFromFilter, setDateFromFilter] = useState<string>('');
   const [dateToFilter, setDateToFilter] = useState<string>('');
+
+  const getCreator = (calc: any) =>
+    (calc?.creatorDisplay ??
+      calc?.creator_username ??
+      calc?.creatorUsername ??
+      calc?.creator ??
+      '').toString().toLowerCase();
 
   const loadCalculations = async (options?: { silent?: boolean }) => {
     const silent = options?.silent;
@@ -59,7 +67,16 @@ const CalculationsPage: React.FC = () => {
       if (dateToFilter) params.date_to = dateToFilter;
       
       const result = await dispatch(fetchCalculations(params)).unwrap();
-      setCalculations(result);
+      const mapped = result.map((c: any) => ({
+        ...c,
+        creatorDisplay:
+          c?.creator_username ??
+          c?.creator ??
+          c?.creatorUsername ??
+          c?.creator_email ??
+          '',
+      }));
+      setCalculations(mapped);
     } catch (err: any) {
       console.error('Failed to load calculations:', err);
       setError('Ошибка загрузки заявок');
@@ -92,6 +109,7 @@ const CalculationsPage: React.FC = () => {
     setStatusFilter('');
     setDateFromFilter('');
     setDateToFilter('');
+    setCreatorFilter('');
   };
 
   const formatDate = (dateString?: string | null) => {
@@ -208,10 +226,22 @@ const CalculationsPage: React.FC = () => {
             />
           </div>
 
+          <div className="filter-group">
+            <label htmlFor="creator-filter" className="filter-label">Создатель (клиентский фильтр)</label>
+            <input
+              id="creator-filter"
+              type="text"
+              className="filter-input"
+              value={creatorFilter}
+              onChange={(e) => setCreatorFilter(e.target.value)}
+              placeholder="email / имя"
+            />
+          </div>
+
           <button 
             className="filter-clear-btn"
             onClick={handleClearFilters}
-            disabled={!statusFilter && !dateFromFilter && !dateToFilter}
+            disabled={!statusFilter && !dateFromFilter && !dateToFilter && !creatorFilter}
           >
             Сбросить
           </button>
@@ -231,6 +261,7 @@ const CalculationsPage: React.FC = () => {
                 <tr>
                   <th>№</th>
                   <th>Статус</th>
+                  <th>Создатель</th>
                   <th>Дата создания</th>
                   <th>Дата формирования</th>
                   <th>Стоимость</th>
@@ -247,6 +278,11 @@ const CalculationsPage: React.FC = () => {
                       calc.status !== 'draft' &&
                       calc.status !== 'deleted'
                   )
+                  .filter((calc: any) =>
+                    creatorFilter
+                      ? getCreator(calc).includes(creatorFilter.toLowerCase())
+                      : true
+                  )
                   .map((calc) => (
                     <tr 
                       key={calc.id} 
@@ -259,6 +295,7 @@ const CalculationsPage: React.FC = () => {
                           {statusLabels[calc.status]}
                         </span>
                       </td>
+                      <td>{calc.creatorDisplay || '—'}</td>
                       <td>{formatDate(calc.created_at)}</td>
                       <td>{formatDate(calc.formed_at)}</td>
                       <td className="cost-cell">{formatCost(calc.total_cost)}</td>
