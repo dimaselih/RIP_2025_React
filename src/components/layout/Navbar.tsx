@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../store';
 import { logoutUser } from '../../store/thunks/authThunks';
 import { IMAGES } from '../../utils/imagePaths';
-import '../../styles/navbar.css';
+import '../../styles/navbarStyles.css';
 
 const Navigation: React.FC = () => {
   const navigate = useNavigate();
@@ -27,6 +27,13 @@ const Navigation: React.FC = () => {
 
   const closeDropdown = () => {
     setDropdownOpen(false);
+  };
+
+  // Закрытие навбара на мобильных при клике на ссылку
+  const handleNavLinkClick = () => {
+    if (window.innerWidth < 992) {
+      setNavbarExpanded(false);
+    }
   };
 
   // Закрытие dropdown при клике вне его
@@ -72,13 +79,13 @@ const Navigation: React.FC = () => {
         <Navbar.Toggle aria-controls="navbar-nav" />
         <Navbar.Collapse id="navbar-nav">
           <Nav className="header-nav ms-auto">
-          <Nav.Link as={Link} to="/catalog_tco" className="nav-link">
+          <Nav.Link as={Link} to="/catalog_tco" className="nav-link" onClick={handleNavLinkClick}>
             Каталог услуг TCO
           </Nav.Link>
             
             {isAuthenticated && (
               <>
-                <Nav.Link as={Link} to="/calculations_tco" className="nav-link">
+                <Nav.Link as={Link} to="/calculations_tco" className="nav-link" onClick={handleNavLinkClick}>
                   Мои заявки
                 </Nav.Link>
                 
@@ -98,7 +105,10 @@ const Navigation: React.FC = () => {
                       <Link 
                         to="/profile" 
                         className="dropdown-item custom-dropdown-item"
-                        onClick={closeDropdown}
+                        onClick={() => {
+                          closeDropdown();
+                          handleNavLinkClick();
+                        }}
                       >
                         🏠 Личный кабинет
                       </Link>
@@ -107,6 +117,7 @@ const Navigation: React.FC = () => {
                         className="dropdown-item custom-dropdown-item"
                         onClick={() => {
                           closeDropdown();
+                          handleNavLinkClick();
                           handleLogout();
                         }}
                         type="button"
@@ -120,7 +131,7 @@ const Navigation: React.FC = () => {
             )}
             
             {!isAuthenticated && (
-              <Nav.Link as={Link} to="/login" className="nav-link login-btn">
+              <Nav.Link as={Link} to="/login" className="nav-link login-btn" onClick={handleNavLinkClick}>
                 🔑 Вход
               </Nav.Link>
             )}
