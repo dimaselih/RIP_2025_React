@@ -56,9 +56,11 @@ export const ServiceDetailPage: React.FC = () => {
       return;
     }
 
+    if (!service || !service.id) return;
+
     try {
       setIsAddingToCart(true);
-      await dispatch(addServiceToCart({ serviceId, quantity: 1 })).unwrap();
+      await dispatch(addServiceToCart({ serviceId })).unwrap();
     } catch (error: any) {
       console.error('Failed to add service to cart:', error);
       alert('Ошибка добавления в корзину. Попробуйте позже.');

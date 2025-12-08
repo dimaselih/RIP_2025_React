@@ -48,7 +48,7 @@ export const fetchCalculation = createAsyncThunk(
 // Добавление услуги в корзину (заявку-черновик)
 export const addServiceToCart = createAsyncThunk(
   'calculations/addToCart',
-  async ({ serviceId, quantity = 1 }: { serviceId: number; quantity?: number }, { rejectWithValue, dispatch }) => {
+  async ({ serviceId }: { serviceId: number }, { rejectWithValue, dispatch }) => {
     try {
       const response = await api.serviceTco.serviceTcoAddToCartCreate(serviceId.toString());
       await dispatch(fetchCartInfo());

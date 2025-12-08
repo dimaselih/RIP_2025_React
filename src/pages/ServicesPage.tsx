@@ -97,7 +97,7 @@ export const ServicesPage: React.FC = () => {
 
     try {
       setAddingServiceId(serviceId);
-      await dispatch(addServiceToCart({ serviceId, quantity: 1 })).unwrap();
+      await dispatch(addServiceToCart({ serviceId })).unwrap();
       await dispatch(fetchCartInfo());
     } catch (error: any) {
       console.error('Failed to add service to cart:', error);

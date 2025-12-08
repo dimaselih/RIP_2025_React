@@ -16,7 +16,8 @@ export const useService = (id: number) => {
       setError(null);
       try {
         const response = await api.serviceTco.serviceTcoRead(id.toString());
-        setService(response.data as ServiceTCOList);
+        const data = (response as any)?.data ?? {};
+        setService(data as ServiceTCOList);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Ошибка загрузки услуги');
       } finally {
@@ -47,7 +48,8 @@ export const useApi = (search?: string, priceFrom?: number, priceTo?: number) =>
         price_from: priceFrom,
         price_to: priceTo,
       });
-      setServices(response.data as ServiceTCOList[]);
+      const data = (response as any)?.data ?? [];
+      setServices(data as ServiceTCOList[]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка загрузки услуг');
     } finally {

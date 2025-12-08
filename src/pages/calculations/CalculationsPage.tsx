@@ -295,7 +295,12 @@ const CalculationsPage: React.FC = () => {
                           {statusLabels[calc.status]}
                         </span>
                       </td>
-                      <td>{calc.creatorDisplay || '—'}</td>
+                      <td>
+                        {(calc as any).creatorDisplay ||
+                          (calc as any).creator_username ||
+                          (calc as any).creator ||
+                          '—'}
+                      </td>
                       <td>{formatDate(calc.created_at)}</td>
                       <td>{formatDate(calc.formed_at)}</td>
                       <td className="cost-cell">{formatCost(calc.total_cost)}</td>

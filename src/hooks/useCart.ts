@@ -11,7 +11,7 @@ export const useCart = () => {
     setError(null);
     try {
       const response = await api.cartTco.cartTcoList();
-      const data = response.data as { calculation_id: number | null; services_count: number };
+      const data = (response as any)?.data ?? {};
       setCartCount(data.services_count || 0);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка загрузки корзины');

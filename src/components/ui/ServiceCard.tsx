@@ -21,11 +21,13 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
 
   const handleViewDetails = (e: React.MouseEvent) => {
     e.preventDefault();
+    if (!service.id) return;
     onViewDetails(service.id);
   };
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
+    if (!service.id) return;
     if (onAddToCart && isAuthenticated) {
       onAddToCart(service.id);
     }
