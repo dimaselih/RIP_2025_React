@@ -140,72 +140,91 @@
   box-shadow: 0 6px 12px rgba(88, 173, 110, 0.4);
 }
 
-/* Table styles */
-.table-wrapper {
+/* Card styles */
+.cards-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.calculation-card {
   background: #fff;
-  border: 0.8px solid #58ad6e;
+  border: 1px solid #e6e9ed;
   border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-}
-
-.calculations-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-family: 'Source Sans 3', sans-serif;
-}
-
-.calculations-table thead {
-  background: linear-gradient(135deg, #58ad6e 0%, #4a9a5e 100%);
-}
-
-.calculations-table thead th {
-  padding: 16px 20px;
-  text-align: left;
-  font-weight: 700;
-  font-size: 14px;
-  color: white;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.calculations-table thead th:first-child {
-  border-top-left-radius: 16px;
-}
-
-.calculations-table thead th:last-child {
-  border-top-right-radius: 16px;
-}
-
-.calculations-table tbody tr {
-  border-bottom: 1px solid #e0e0e0;
+  padding: 20px 24px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
   transition: all 0.2s ease;
   cursor: pointer;
 }
 
-.calculations-table tbody tr:hover {
-  background: rgba(88, 173, 110, 0.05);
-  transform: scale(1.01);
+.calculation-card:hover {
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+  border-color: #58ad6e;
 }
 
-.calculations-table tbody tr:last-child {
-  border-bottom: none;
+.card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
-.calculations-table tbody td {
-  padding: 16px 20px;
-  font-size: 15px;
-  color: #333;
+.card-title {
+  font-family: 'Source Sans 3', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  color: #111827;
 }
 
-.cost-cell {
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px 20px;
+  margin-bottom: 16px;
+}
+
+.card-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.card-label {
+  font-size: 13px;
   font-weight: 600;
-  color: #58ad6e;
+  color: #6b7280;
 }
 
-.actions-cell {
+.card-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.card-accent {
+  color: #058e3f;
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.card-admin-actions {
   display: flex;
   gap: 10px;
+}
+
+.card-admin-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
 }
 
 .status-btn {

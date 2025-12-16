@@ -50,6 +50,13 @@ const CalculationsPage: React.FC = () => {
       calc?.creator ??
       '').toString().toLowerCase();
 
+  const normalizeCalc = (item: any) => ({
+    ...item,
+    // нормализуем названия полей дат, если бек вернёт camelCase
+    start_date: item.start_date ?? item.startDate ?? null,
+    end_date: item.end_date ?? item.endDate ?? null,
+  });
+
   const loadCalculations = async (options?: { silent?: boolean }) => {
     const silent = options?.silent;
     try {
@@ -67,16 +74,52 @@ const CalculationsPage: React.FC = () => {
       if (dateToFilter) params.date_to = dateToFilter;
       
       const result = await dispatch(fetchCalculations(params)).unwrap();
-      const mapped = result.map((c: any) => ({
-        ...c,
-        creatorDisplay:
-          c?.creator_username ??
-          c?.creator ??
-          c?.creatorUsername ??
-          c?.creator_email ??
-          '',
-      }));
-      setCalculations(mapped);
+      const mapped = result.map((c: any) =>
+        normalizeCalc({
+          ...c,
+          creatorDisplay:
+            c?.creator_username ??
+            c?.creator ??
+            c?.creatorUsername ??
+            c?.creator_email ??
+            '',
+        })
+      );
+      
+      // Догружаем start_date / end_date, если список их не вернул
+      const needDetails = mapped.filter((c) => !c.start_date || !c.end_date);
+      if (needDetails.length > 0) {
+        try {
+          const details = await Promise.all(
+            needDetails.map(async (c) => {
+              try {
+                const full = await dispatch(fetchCalculation(c.id as number)).unwrap();
+                return full;
+              } catch {
+                return null;
+              }
+            })
+          );
+
+          const detailById = new Map(
+            details
+              .filter(Boolean)
+              .map((d: any) => [d.id, d])
+          );
+
+          const merged = mapped.map((item) =>
+            detailById.has(item.id)
+              ? normalizeCalc({ ...item, ...detailById.get(item.id) })
+              : item
+          );
+          setCalculations(merged);
+        } catch {
+          // если не удалось догрузить детали — показываем как есть
+          setCalculations(mapped);
+        }
+      } else {
+        setCalculations(mapped);
+      }
     } catch (err: any) {
       console.error('Failed to load calculations:', err);
       setError('Ошибка загрузки заявок');
@@ -137,14 +180,27 @@ const CalculationsPage: React.FC = () => {
     navigate(`/calculation_tco/${id}`);
   };
 
-  const handleStatusChange = async (id: number, action: 'complete' | 'reject') => {
+  const handleStatusChange = async (
+    id: number,
+    action: 'complete' | 'reject',
+    previousStatus: CalculationStatus
+  ) => {
+    setActionLoadingId(id);
     try {
-      setActionLoadingId(id);
+      // Отправляем действие
       await dispatch(completeCalculation({ id, action })).unwrap();
+
+      // Подождём немного, чтобы сервер успел обновить
+      await new Promise((res) => setTimeout(res, 1500));
+
+      // Обновляем список заявок и ждём завершения
       await loadCalculations({ silent: true });
+      
+      // Убираем спиннер только после полного обновления
+      setActionLoadingId(null);
     } catch (err: any) {
+      console.error('Ошибка смены статуса:', err);
       alert(err || 'Не удалось сменить статус');
-    } finally {
       setActionLoadingId(null);
     }
   };
@@ -176,6 +232,18 @@ const CalculationsPage: React.FC = () => {
       </div>
     );
   }
+
+  const visibleCalculations = calculations
+    .filter(
+      (calc): calc is CalculationTCO & { id: number; status: CalculationStatus } =>
+        typeof calc.id === 'number' &&
+        !!calc.status &&
+        calc.status !== 'draft' &&
+        calc.status !== 'deleted'
+    )
+    .filter((calc: any) =>
+      creatorFilter ? getCreator(calc).includes(creatorFilter.toLowerCase()) : true
+    );
 
   return (
     <div className="calculations-page">
@@ -227,7 +295,7 @@ const CalculationsPage: React.FC = () => {
           </div>
 
           <div className="filter-group">
-            <label htmlFor="creator-filter" className="filter-label">Создатель (клиентский фильтр)</label>
+            <label htmlFor="creator-filter" className="filter-label">Создатель</label>
             <input
               id="creator-filter"
               type="text"
@@ -255,78 +323,82 @@ const CalculationsPage: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div className="table-wrapper">
-            <table className="calculations-table">
-              <thead>
-                <tr>
-                  <th>№</th>
-                  <th>Статус</th>
-                  <th>Создатель</th>
-                  <th>Дата создания</th>
-                  <th>Дата формирования</th>
-                  <th>Стоимость</th>
-                  <th>Период (мес.)</th>
-                  {(user?.is_staff || user?.is_superuser) && <th>Действия</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {calculations
-                  .filter(
-                    (calc): calc is CalculationTCO & { id: number; status: CalculationStatus } =>
-                      typeof calc.id === 'number' &&
-                      !!calc.status &&
-                      calc.status !== 'draft' &&
-                      calc.status !== 'deleted'
-                  )
-                  .filter((calc: any) =>
-                    creatorFilter
-                      ? getCreator(calc).includes(creatorFilter.toLowerCase())
-                      : true
-                  )
-                  .map((calc) => (
-                    <tr 
-                      key={calc.id} 
-                      className="calculation-row"
-                      onClick={() => handleRowClick(calc.id)}
-                    >
-                      <td>{calc.id}</td>
-                      <td>
-                        <span className={`status-badge ${statusColors[calc.status]}`}>
-                          {statusLabels[calc.status]}
-                        </span>
-                      </td>
-                      <td>
-                        {(calc as any).creatorDisplay ||
-                          (calc as any).creator_username ||
-                          (calc as any).creator ||
-                          '—'}
-                      </td>
-                      <td>{formatDate(calc.created_at)}</td>
-                      <td>{formatDate(calc.formed_at)}</td>
-                      <td className="cost-cell">{formatCost(calc.total_cost)}</td>
-                      <td>{calc.duration_months || '—'}</td>
-                      {(user?.is_staff || user?.is_superuser) && (
-                        <td className="actions-cell">
-                          <button
-                            className="status-btn success"
-                            onClick={(e) => { e.stopPropagation(); handleStatusChange(calc.id, 'complete'); }}
-                            disabled={actionLoadingId === calc.id || calc.status !== 'formed'}
-                          >
-                            {actionLoadingId === calc.id ? '...' : 'Завершить'}
-                          </button>
-                          <button
-                            className="status-btn danger"
-                            onClick={(e) => { e.stopPropagation(); handleStatusChange(calc.id, 'reject'); }}
-                            disabled={actionLoadingId === calc.id || calc.status !== 'formed'}
-                          >
-                            Отклонить
-                          </button>
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
+          <div className="cards-wrapper">
+            {visibleCalculations.map((calc) => (
+              <div
+                key={calc.id}
+                className="calculation-card"
+                onClick={() => handleRowClick(calc.id)}
+              >
+                <div className="card-top">
+                  <div className="card-title">Счёт №{calc.id}</div>
+                  <span className={`status-badge ${statusColors[calc.status]}`}>
+                    {statusLabels[calc.status]}
+                  </span>
+                </div>
+
+                <div className="card-grid">
+                  <div className="card-cell">
+                    <div className="card-label">Статус</div>
+                    <div className="card-value">{statusLabels[calc.status]}</div>
+                  </div>
+                  <div className="card-cell">
+                    <div className="card-label">Дата создания</div>
+                    <div className="card-value">{formatDate(calc.created_at)}</div>
+                  </div>
+                  <div className="card-cell">
+                    <div className="card-label">Дата подачи</div>
+                    <div className="card-value">{formatDate(calc.formed_at)}</div>
+                  </div>
+                  <div className="card-cell">
+            <div className="card-label">Общая стоимость</div>
+                    <div className="card-value card-accent">{formatCost(calc.total_cost)}</div>
+                  </div>
+                  <div className="card-cell">
+                    <div className="card-label">Создатель</div>
+                    <div className="card-value">
+                      {(calc as any).creatorDisplay ||
+                        (calc as any).creator_username ||
+                        (calc as any).creator ||
+                        '—'}
+                    </div>
+                  </div>
+                </div>
+
+                {(user?.is_staff || user?.is_superuser) && (
+                  <div className="card-actions">
+                    {actionLoadingId === calc.id ? (
+                      <div className="card-admin-loading">
+                        <span className="small-spinner" aria-label="Выполняется..." />
+                      </div>
+                    ) : (
+                      <div className="card-admin-actions">
+                        <button
+                          className="status-btn success"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          handleStatusChange(calc.id, 'complete', calc.status);
+                          }}
+                          disabled={calc.status !== 'formed'}
+                        >
+                          Завершить
+                        </button>
+                        <button
+                          className="status-btn danger"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          handleStatusChange(calc.id, 'reject', calc.status);
+                          }}
+                          disabled={calc.status !== 'formed'}
+                        >
+                          Отклонить
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         )}
       </div>
