@@ -23,14 +23,11 @@ export const MediaCarousel: React.FC<MediaCarouselProps> = ({
   const [videoError, setVideoError] = useState<Record<number, boolean>>({});
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  console.log('[MediaCarousel] Media items:', media.map(m => ({ id: m.id, url: m.file_url, type: m.file_type })));
-
   // Автовоспроизведение видео при смене слайда
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.play().catch(() => {
         // Браузер может блокировать автовоспроизведение
-        console.log('Autoplay blocked, user interaction required');
       });
     }
   }, [currentIndex]);
@@ -52,7 +49,6 @@ export const MediaCarousel: React.FC<MediaCarouselProps> = ({
   }
 
   const handleVideoError = (id: number) => {
-    console.error(`Video load error for id ${id}`);
     setVideoError(prev => ({ ...prev, [id]: true }));
   };
 

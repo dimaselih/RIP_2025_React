@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../store';
-import { fetchCalculations, fetchCalculation, completeCalculation } from '../../store/thunks/calculationThunks';
+import { fetchCalculations, completeCalculation } from '../../store/thunks/calculationThunks';
 import { CalculationTCO } from '../../api/Api';
 import { Breadcrumbs } from '../../components/layout';
 import { ROUTE_LABELS } from '../../utils/constants';
@@ -49,13 +49,6 @@ const CalculationsPage: React.FC = () => {
       calc?.creator ??
       '').toString().toLowerCase();
 
-  const normalizeCalc = (item: any) => ({
-    ...item,
-    // нормализуем названия полей дат, если бек вернёт camelCase
-    start_date: item.start_date ?? item.startDate ?? null,
-    end_date: item.end_date ?? item.endDate ?? null,
-  });
-
   const loadCalculations = async (options?: { silent?: boolean }) => {
     const silent = options?.silent;
     try {
@@ -75,53 +68,18 @@ const CalculationsPage: React.FC = () => {
       }
       
       const result = await dispatch(fetchCalculations(params)).unwrap();
-      const mapped = result.map((c: any) =>
-        normalizeCalc({
-          ...c,
-          creatorDisplay:
-            c?.creator_username ??
-            c?.creator ??
-            c?.creatorUsername ??
-            c?.creator_email ??
-            '',
-        })
-      );
+      const mapped = result.map((c: any) => ({
+        ...c,
+        creatorDisplay:
+          c?.creator_username ??
+          c?.creator ??
+          c?.creatorUsername ??
+          c?.creator_email ??
+          '',
+      }));
       
-      // Догружаем start_date / end_date, если список их не вернул
-      const needDetails = mapped.filter((c) => !c.start_date || !c.end_date);
-      if (needDetails.length > 0) {
-        try {
-          const details = await Promise.all(
-            needDetails.map(async (c) => {
-              try {
-                const full = await dispatch(fetchCalculation(c.id as number)).unwrap();
-                return full;
-              } catch {
-                return null;
-              }
-            })
-          );
-
-          const detailById = new Map(
-            details
-              .filter(Boolean)
-              .map((d: any) => [d.id, d])
-          );
-
-          const merged = mapped.map((item) => {
-            const detail = detailById.get(item.id);
-            return detail ? normalizeCalc({ ...item, ...detail }) : item;
-          });
-          setCalculations(merged);
-        } catch {
-          // если не удалось догрузить детали — показываем как есть
-          setCalculations(mapped);
-        }
-      } else {
-        setCalculations(mapped);
-      }
+      setCalculations(mapped);
     } catch (err: any) {
-      console.error('Failed to load calculations:', err);
       setError('Ошибка загрузки заявок');
     } finally {
       if (silent) {
@@ -197,7 +155,6 @@ const CalculationsPage: React.FC = () => {
       // Убираем спиннер только после полного обновления
       setActionLoadingId(null);
     } catch (err: any) {
-      console.error('Ошибка смены статуса:', err);
       alert(err || 'Не удалось сменить статус');
       setActionLoadingId(null);
     }
@@ -249,7 +206,6 @@ const CalculationsPage: React.FC = () => {
       <div className="calculations-container">
         <div className="calculations-header">
           <h1 className="calculations-title">Заявки</h1>
-          {refreshing && <span className="small-spinner" aria-label="Обновление..." />}
         </div>
 
         {/* Фильтры */}
@@ -317,7 +273,7 @@ const CalculationsPage: React.FC = () => {
                 onClick={() => handleRowClick(calc.id)}
               >
                 <div className="card-top">
-                  <div className="card-title">Счёт №{calc.id}</div>
+                  <div className="card-title">Заявка №{calc.id}</div>
                   <span className={`status-badge ${statusColors[calc.status]}`}>
                     {statusLabels[calc.status]}
                   </span>

@@ -63,7 +63,6 @@ export const ServiceDetailPage: React.FC = () => {
           });
           if (mediaResponse.ok) {
             const mediaData = await mediaResponse.json();
-            console.log('[ServiceDetail] Media from API:', mediaData);
             
             // Сначала добавляем media из таблицы (приоритет - они идут по id)
             const allMedia: MediaItem[] = [];
@@ -95,10 +94,6 @@ export const ServiceDetailPage: React.FC = () => {
               });
             }
             
-            console.log('[ServiceDetail] Media from API:', mediaData);
-            console.log('[ServiceDetail] Service image_url:', result.image_url);
-            console.log('[ServiceDetail] Final media array:', allMedia, 'length:', allMedia.length);
-            console.log('[ServiceDetail] Final media URLs:', allMedia.map(m => m.file_url));
             setMedia(allMedia);
           } else {
             // Если media не загрузились, но есть image_url - используем его
@@ -114,7 +109,6 @@ export const ServiceDetailPage: React.FC = () => {
           }
         } catch (mediaErr) {
                 // Если media не загрузились, но есть image_url - используем его
-                console.warn('Failed to load media:', mediaErr);
                 if (result.image_url) {
                   setMedia([{
                     id: 0,
@@ -135,11 +129,6 @@ export const ServiceDetailPage: React.FC = () => {
     loadService();
   }, [dispatch, serviceId]);
 
-  // Отладочный useEffect для проверки обновления media
-  useEffect(() => {
-    console.log('[ServiceDetail] Media state updated:', media);
-  }, [media]);
-
   const handleGoBack = () => {
     navigate('/catalog_tco');
   };
@@ -156,7 +145,6 @@ export const ServiceDetailPage: React.FC = () => {
       setIsAddingToCart(true);
       await dispatch(addServiceToCart({ serviceId })).unwrap();
     } catch (error: any) {
-      console.error('Failed to add service to cart:', error);
       alert('Ошибка добавления в корзину. Попробуйте позже.');
     } finally {
       setIsAddingToCart(false);
