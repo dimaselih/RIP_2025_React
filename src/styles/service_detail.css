@@ -133,6 +133,8 @@
   object-position: center;
 }
 
+/* Media Carousel styles moved to MediaCarousel.css */
+
 .service-info-large {
   flex: 1;
   padding: 16px;

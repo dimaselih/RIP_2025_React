@@ -1,22 +1,16 @@
-import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Container } from 'react-bootstrap';
-import { Provider, useDispatch } from 'react-redux';
-import { store, AppDispatch } from './store';
+import { Provider } from 'react-redux';
+import { store } from './store';
 import { Navbar } from './components/layout';
 import { HomePage, ServicesPage, ServiceDetailPage, ProfilePage } from './pages';
 import { LoginPage, RegisterPage } from './pages/authentication';
 import { CalculationsPage, CalculationPage } from './pages/calculations';
 import { dest_root } from './config/target_config';
-import { logoutUser } from './store/thunks/authThunks';
 
 function AppContent() {
-  const dispatch = useDispatch<AppDispatch>();
-
-  // При загрузке приложения сбрасываем серверную сессию, чтобы логин не переживал F5
-  useEffect(() => {
-    dispatch(logoutUser());
-  }, [dispatch]);
+  // Redux state сбрасывается при F5, поэтому пользователь автоматически не авторизован
+  // Не нужно делать logout - просто не сохраняем пользователя в localStorage
 
   return (
     <BrowserRouter basename={dest_root}>

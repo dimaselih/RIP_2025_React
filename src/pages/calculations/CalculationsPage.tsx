@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../store';
-import { fetchCalculations, completeCalculation } from '../../store/thunks/calculationThunks';
+import { fetchCalculations, fetchCalculation, completeCalculation } from '../../store/thunks/calculationThunks';
 import { CalculationTCO } from '../../api/Api';
 import { Breadcrumbs } from '../../components/layout';
 import { ROUTE_LABELS } from '../../utils/constants';
@@ -40,8 +40,7 @@ const CalculationsPage: React.FC = () => {
   
   // Фильтры
   const [statusFilter, setStatusFilter] = useState<string>('');
-  const [dateFromFilter, setDateFromFilter] = useState<string>('');
-  const [dateToFilter, setDateToFilter] = useState<string>('');
+  const [formedDateFilter, setFormedDateFilter] = useState<string>('');
 
   const getCreator = (calc: any) =>
     (calc?.creatorDisplay ??
@@ -70,8 +69,10 @@ const CalculationsPage: React.FC = () => {
       // Формируем параметры для фильтрации
       const params: any = {};
       if (statusFilter) params.status = statusFilter;
-      if (dateFromFilter) params.date_from = dateFromFilter;
-      if (dateToFilter) params.date_to = dateToFilter;
+      if (formedDateFilter) {
+        params.date_from = formedDateFilter;
+        params.date_to = formedDateFilter; // Фильтруем по точной дате
+      }
       
       const result = await dispatch(fetchCalculations(params)).unwrap();
       const mapped = result.map((c: any) =>
@@ -107,11 +108,10 @@ const CalculationsPage: React.FC = () => {
               .map((d: any) => [d.id, d])
           );
 
-          const merged = mapped.map((item) =>
-            detailById.has(item.id)
-              ? normalizeCalc({ ...item, ...detailById.get(item.id) })
-              : item
-          );
+          const merged = mapped.map((item) => {
+            const detail = detailById.get(item.id);
+            return detail ? normalizeCalc({ ...item, ...detail }) : item;
+          });
           setCalculations(merged);
         } catch {
           // если не удалось догрузить детали — показываем как есть
@@ -146,12 +146,11 @@ const CalculationsPage: React.FC = () => {
     const id = setInterval(() => loadCalculations({ silent: true }), 5000);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, initialized, navigate, statusFilter, dateFromFilter, dateToFilter]);
+  }, [isAuthenticated, initialized, navigate, statusFilter, formedDateFilter]);
 
   const handleClearFilters = () => {
     setStatusFilter('');
-    setDateFromFilter('');
-    setDateToFilter('');
+    setFormedDateFilter('');
     setCreatorFilter('');
   };
 
@@ -182,8 +181,7 @@ const CalculationsPage: React.FC = () => {
 
   const handleStatusChange = async (
     id: number,
-    action: 'complete' | 'reject',
-    previousStatus: CalculationStatus
+    action: 'complete' | 'reject'
   ) => {
     setActionLoadingId(id);
     try {
@@ -272,25 +270,13 @@ const CalculationsPage: React.FC = () => {
           </div>
 
           <div className="filter-group">
-            <label htmlFor="date-from-filter" className="filter-label">Дата начала</label>
+            <label htmlFor="formed-date-filter" className="filter-label">Дата формирования</label>
             <input
-              id="date-from-filter"
+              id="formed-date-filter"
               type="date"
               className="filter-input"
-              value={dateFromFilter}
-              onChange={(e) => setDateFromFilter(e.target.value)}
-            />
-          </div>
-
-          <div className="filter-group">
-            <label htmlFor="date-to-filter" className="filter-label">Дата окончания</label>
-            <input
-              id="date-to-filter"
-              type="date"
-              className="filter-input"
-              value={dateToFilter}
-              onChange={(e) => setDateToFilter(e.target.value)}
-              min={dateFromFilter}
+              value={formedDateFilter}
+              onChange={(e) => setFormedDateFilter(e.target.value)}
             />
           </div>
 
@@ -309,7 +295,7 @@ const CalculationsPage: React.FC = () => {
           <button 
             className="filter-clear-btn"
             onClick={handleClearFilters}
-            disabled={!statusFilter && !dateFromFilter && !dateToFilter && !creatorFilter}
+            disabled={!statusFilter && !formedDateFilter && !creatorFilter}
           >
             Сбросить
           </button>
@@ -347,7 +333,7 @@ const CalculationsPage: React.FC = () => {
                     <div className="card-value">{formatDate(calc.created_at)}</div>
                   </div>
                   <div className="card-cell">
-                    <div className="card-label">Дата подачи</div>
+                    <div className="card-label">Дата формирования</div>
                     <div className="card-value">{formatDate(calc.formed_at)}</div>
                   </div>
                   <div className="card-cell">
@@ -377,7 +363,7 @@ const CalculationsPage: React.FC = () => {
                           className="status-btn success"
                           onClick={(e) => {
                             e.stopPropagation();
-                          handleStatusChange(calc.id, 'complete', calc.status);
+                          handleStatusChange(calc.id, 'complete');
                           }}
                           disabled={calc.status !== 'formed'}
                         >
@@ -387,7 +373,7 @@ const CalculationsPage: React.FC = () => {
                           className="status-btn danger"
                           onClick={(e) => {
                             e.stopPropagation();
-                          handleStatusChange(calc.id, 'reject', calc.status);
+                          handleStatusChange(calc.id, 'reject');
                           }}
                           disabled={calc.status !== 'formed'}
                         >

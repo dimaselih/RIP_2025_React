@@ -9,9 +9,26 @@ import { Breadcrumbs } from '../components/layout';
 import { ROUTES, ROUTE_LABELS } from '../utils/constants';
 import { IMAGES } from '../utils/imagePaths';
 import { ServiceTCOList } from '../api/Api';
+import { MediaCarousel } from '../components/ui/MediaCarousel';
+import { dest_api } from '../config/target_config';
 import '../styles/service_detail.css';
 
 const DEFAULT_IMAGE_URL = IMAGES.DEFAULT_SERVICE;
+
+interface MediaItem {
+  id: number;
+  file_url: string;
+  file_type: 'photo' | 'video';
+}
+
+// Функция для преобразования URL MinIO в прокси URL (для разработки)
+const normalizeMediaUrl = (url: string): string => {
+  if (import.meta.env.DEV && url && url.startsWith('http://127.0.0.1:9000/')) {
+    // В режиме разработки используем прокси
+    return url.replace('http://127.0.0.1:9000', '/minio');
+  }
+  return url;
+};
 
 export const ServiceDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,6 +38,7 @@ export const ServiceDetailPage: React.FC = () => {
   
   const serviceId = id ? parseInt(id) : 0;
   const [service, setService] = useState<ServiceTCOList | null>(null);
+  const [media, setMedia] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
@@ -36,6 +54,77 @@ export const ServiceDetailPage: React.FC = () => {
         setError(null);
         const result = await dispatch(fetchService(serviceId)).unwrap();
         setService(result);
+        
+        // Загружаем media для услуги
+        try {
+          const apiBaseUrl = dest_api || (import.meta.env.DEV ? '' : 'http://localhost:8000');
+          const mediaResponse = await fetch(`${apiBaseUrl}/api/service_tco/${serviceId}/media/`, {
+            credentials: 'include',
+          });
+          if (mediaResponse.ok) {
+            const mediaData = await mediaResponse.json();
+            console.log('[ServiceDetail] Media from API:', mediaData);
+            
+            // Сначала добавляем media из таблицы (приоритет - они идут по id)
+            const allMedia: MediaItem[] = [];
+            const existingUrls = new Set<string>();
+            
+            // Добавляем media из таблицы (исключаем дубликаты по URL)
+            if (mediaData && Array.isArray(mediaData) && mediaData.length > 0) {
+              mediaData.forEach((item: any) => {
+                const fileUrl = item.file_url;
+                if (fileUrl && !existingUrls.has(fileUrl)) {
+                  const normalizedUrl = normalizeMediaUrl(fileUrl);
+                  allMedia.push({
+                    id: item.id || 0,
+                    file_url: normalizedUrl,
+                    file_type: (item.file_type === 'video' ? 'video' : 'photo')
+                  });
+                  existingUrls.add(fileUrl); // Используем оригинальный URL для проверки дубликатов
+                }
+              });
+            }
+            
+            // Затем добавляем image_url из услуги в начало, если его еще нет
+            if (result.image_url && !existingUrls.has(result.image_url)) {
+              const normalizedImageUrl = normalizeMediaUrl(result.image_url);
+              allMedia.unshift({
+                id: -1, // Отрицательный ID для image_url
+                file_url: normalizedImageUrl,
+                file_type: 'photo'
+              });
+            }
+            
+            console.log('[ServiceDetail] Media from API:', mediaData);
+            console.log('[ServiceDetail] Service image_url:', result.image_url);
+            console.log('[ServiceDetail] Final media array:', allMedia, 'length:', allMedia.length);
+            console.log('[ServiceDetail] Final media URLs:', allMedia.map(m => m.file_url));
+            setMedia(allMedia);
+          } else {
+            // Если media не загрузились, но есть image_url - используем его
+            if (result.image_url) {
+              setMedia([{
+                id: 0,
+                file_url: normalizeMediaUrl(result.image_url),
+                file_type: 'photo'
+              }]);
+            } else {
+              setMedia([]);
+            }
+          }
+        } catch (mediaErr) {
+                // Если media не загрузились, но есть image_url - используем его
+                console.warn('Failed to load media:', mediaErr);
+                if (result.image_url) {
+                  setMedia([{
+                    id: 0,
+                    file_url: normalizeMediaUrl(result.image_url),
+                    file_type: 'photo'
+                  }]);
+                } else {
+                  setMedia([]);
+                }
+        }
       } catch (err: any) {
         setError(err instanceof Error ? err.message : 'Ошибка загрузки услуги');
       } finally {
@@ -45,6 +134,11 @@ export const ServiceDetailPage: React.FC = () => {
 
     loadService();
   }, [dispatch, serviceId]);
+
+  // Отладочный useEffect для проверки обновления media
+  useEffect(() => {
+    console.log('[ServiceDetail] Media state updated:', media);
+  }, [media]);
 
   const handleGoBack = () => {
     navigate('/catalog_tco');
@@ -116,17 +210,24 @@ export const ServiceDetailPage: React.FC = () => {
 
       {/* Main Content */}
       <Row className="service-detail-content">
-        {/* Service Image */}
+        {/* Service Media Carousel */}
         <Col md={6} className="service-image-large">
-          <Card.Img 
-            src={imageUrl} 
-            alt={service.name} 
-            className="detail-image"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = DEFAULT_IMAGE_URL;
-            }}
-          />
+          {media.length > 0 ? (
+            <MediaCarousel 
+              media={media} 
+              fallbackImageUrl={service.image_url || DEFAULT_IMAGE_URL} 
+            />
+          ) : (
+            <img 
+              src={service.image_url || DEFAULT_IMAGE_URL} 
+              alt={service.name || 'Service'} 
+              className="detail-image"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = DEFAULT_IMAGE_URL;
+              }}
+            />
+          )}
         </Col>
 
         {/* Service Info */}
